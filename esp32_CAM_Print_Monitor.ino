@@ -99,7 +99,7 @@ uint8_t temprature_sens_read();
 
 void startCameraServer();
 
-void blink()
+void blink() //This blinks the onboard LED flash once you are connected to the Wifi.
 {
   digitalWrite(ledPin, HIGH); // turn on the LED
   delay(50);                  // wait for half a second or 500 milliseconds
@@ -260,7 +260,7 @@ void setup()
 
 void loop()
 {
-  if (WiFi.status() != WL_CONNECTED)
+  if (WiFi.status() != WL_CONNECTED) //Loop used to reconnect wifi after disconnection
   {
     Serial.println(WiFi.status());
     WiFi.reconnect();
