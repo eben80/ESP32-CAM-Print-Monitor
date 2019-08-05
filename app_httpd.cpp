@@ -103,7 +103,7 @@ static const char PROGMEM INDEX2_HTML[] = R"rawliteral(
     <head>
         <meta charset="utf-8">
         <meta name="viewport" content="width=device-width,initial-scale=1">
-        <title>ESP32 Print Monitor</title>
+        <title>ESP32-CAM Print Monitor</title>
         <style>
 body{font-family:Arial,Helvetica,sans-serif;background:#181818;color:#efefef;font-size:16px}h2{font-size:18px}#menu,section.main{flex-direction:column}section.main{display:flex}#menu{display:none;flex-wrap:nowrap;min-width:340px;background:#666;padding:8px;border-radius:4px;margin-top:-10px;margin-right:10px}#content{display:flex;flex-wrap:wrap;align-items:stretch}figure{padding:0;margin:0;-webkit-margin-before:0;margin-block-start:0;-webkit-margin-after:0;margin-block-end:0;-webkit-margin-start:0;margin-inline-start:0;-webkit-margin-end:0;margin-inline-end:0}figure img{display:block;width:100%;height:auto;border-radius:4px;margin-top:8px}@media (min-width:800px) and (orientation:landscape){#content{display:flex;flex-wrap:nowrap;align-items:stretch}figure img{display:block;max-width:100%;max-height:calc(100vh - 40px);width:auto;height:auto}figure{padding:0;margin:0;-webkit-margin-before:0;margin-block-start:0;-webkit-margin-after:0;margin-block-end:0;-webkit-margin-start:0;margin-inline-start:0;-webkit-margin-end:0;margin-inline-end:0}}section#buttons{display:flex;flex-wrap:nowrap;justify-content:space-between}#nav-toggle{cursor:pointer;display:block}#nav-toggle-cb{outline:0;opacity:0;width:0;height:0}#nav-toggle-cb:checked+#menu{display:flex}.input-group{display:flex;flex-wrap:nowrap;line-height:22px;margin:5px 0}.input-group>label{display:inline-block;padding-right:10px;min-width:47%}.input-group input,.input-group select{flex-grow:1}.range-max,.range-min{display:inline-block;padding:0 5px}button{display:block;margin:5px;padding:0 12px;border:0;line-height:28px;cursor:pointer;color:#fff;background:#ff3034;border-radius:5px;font-size:16px;outline:0}button:hover{background:#ff494d}button:active{background:#f21c21}button.disabled{cursor:default;background:#a0a0a0}input[type=range]{-webkit-appearance:none;width:100%;height:22px;background:#363636;cursor:pointer;margin:0}input[type=range]:focus{outline:0}input[type=range]::-webkit-slider-runnable-track{width:100%;height:2px;cursor:pointer;background:#efefef;border-radius:0;border:0 solid #efefef}input[type=range]::-webkit-slider-thumb{border:1px solid transparent;height:22px;width:22px;border-radius:50px;background:#ff3034;cursor:pointer;-webkit-appearance:none;margin-top:-11.5px}input[type=range]:focus::-webkit-slider-runnable-track{background:#efefef}input[type=range]::-moz-range-track{width:100%;height:2px;cursor:pointer;background:#efefef;border-radius:0;border:0 solid #efefef}input[type=range]::-moz-range-thumb{border:1px solid transparent;height:22px;width:22px;border-radius:50px;background:#ff3034;cursor:pointer}input[type=range]::-ms-track{width:100%;height:2px;cursor:pointer;background:0 0;border-color:transparent;color:transparent}input[type=range]::-ms-fill-lower{background:#efefef;border:0 solid #efefef;border-radius:0}input[type=range]::-ms-fill-upper{background:#efefef;border:0 solid #efefef;border-radius:0}input[type=range]::-ms-thumb{border:1px solid transparent;width:22px;border-radius:50px;background:#ff3034;cursor:pointer;height:2px}input[type=range]:focus::-ms-fill-lower{background:#efefef}input[type=range]:focus::-ms-fill-upper{background:#363636}.switch{line-height:22px;font-size:16px}.switch input{outline:0;opacity:0;width:0;height:0}.slider,.slider:before{width:50px;height:22px;border-radius:22px;display:inline-block}.slider:before{border-radius:50%;top:3px;position:absolute;content:"";height:15px;width:15px;left:4px;bottom:4px;background-color:#fff;-webkit-transition:.4s;transition:.4s}input:checked+.slider{background-color:#2196f3}input:checked+.slider:before{-webkit-transform:translateX(26px);-ms-transform:translateX(26px);transform:translateX(26px)}select{border:1px solid #363636;font-size:14px;height:22px;outline:0;border-radius:5px}.image-container{position:relative;min-width:160px}.abortbtn,.powerbtn{position:absolute;right:5px;top:5px;background-color:rgba(255,48,52,.5);color:#fff;text-align:center}.powerbtn{top:40px}.bedtemp,.elapsedtime,.exttemp,.proglabel,.cputemp{font-family:Arial,Helvetica,sans-serif;font-size:10px;position:absolute;left:5px;top:5px;background-color:rgba(140,114,114,.5);color:#fff;text-align:center}.bedtemp,.elapsedtime,.exttemp{top:23px}.bedtemp,.exttemp{top:40px}.bedtemp{top:60px}.cputemp{top:80px}.hidden{display:none}.lightsw{position:absolute;right:5px;top:85px;text-align:center;font-family:Arial,Helvetica,sans-serif}.streamsw{position:absolute;right:5px;top:130px;text-align:center;font-family:Arial,Helvetica,sans-serif}.switch{position:relative;display:inline-block;width:60px;height:34px}.slider{position:absolute;cursor:pointer;top:0;left:0;right:0;bottom:0;background-color:#ccc;-webkit-transition:.4s;transition:.4s}input:focus+.slider{box-shadow:0 0 1px #2196f3}.slider.round{border-radius:34px}.slider.round:before{border-radius:50%}
         </style>
@@ -112,8 +112,9 @@ body{font-family:Arial,Helvetica,sans-serif;background:#181818;color:#efefef;fon
 function load() {
 //document.getElementById('stream').src = window.location.protocol + "//" + window.location.hostname + ":9601/stream";
 check();
-var inst = setInterval(change, 5000);
-var query = setInterval(check, 60000);
+var refreshrate = 60000;
+var inst = setInterval(change, refreshrate);
+var query = setInterval(check, refreshrate);
 
 function change() {
         $.ajax({
@@ -128,7 +129,7 @@ function change() {
             console.log("Data Error");
           }
         });
-
+console.log("change executed");
 }
 
 
@@ -155,7 +156,7 @@ function check() {
             console.log("Data Error");
           }
         });
-
+console.log("check executed refresh=" + refreshrate);
 }
 
 $('#lighttoggle').change(function(){
@@ -178,7 +179,31 @@ $('#lighttoggle').change(function(){
 		}
       });
 	  
-	  
+$('#refreshrate').change(function(){
+
+
+    var myCookie = getCookie("refreshrate");
+
+    if (myCookie == null) {
+    document.cookie = "refreshrate=60000";
+        // do cookie doesn't exist stuff;
+    }
+    else {
+    refreshrate = getCookie(refreshrate);
+        // do cookie exists stuff
+    }
+
+
+
+
+refreshrate = document.getElementById('refreshrate').value;
+document.cookie = "refreshrate=" + refreshrate;
+clearInterval(inst);
+inst = setInterval(change, refreshrate);
+clearInterval(query);
+query = setInterval(check, refreshrate);
+
+      });	  
 	  
 	  $('#streamtoggle').change(function(){
 		if (document.getElementById('streamtoggle').checked) {
@@ -188,6 +213,27 @@ window.stop
 document.getElementById('stream').src = "https://www.mapme.ga/ESP32-CAM-PM.jpg";
 		}
       });
+      
+      function getCookie(name) {
+    var dc = document.cookie;
+    var prefix = name + "=";
+    var begin = dc.indexOf("; " + prefix);
+    if (begin == -1) {
+        begin = dc.indexOf(prefix);
+        if (begin != 0) return null;
+    }
+    else
+    {
+        begin += 2;
+        var end = document.cookie.indexOf(";", begin);
+        if (end == -1) {
+        end = dc.length;
+        }
+    }
+    // because unescape has been deprecated, replaced with decodeURI
+    //return unescape(dc.substring(begin + prefix.length, end));
+    return decodeURI(dc.substring(begin + prefix.length, end));
+} 
 	  
 }
 
@@ -266,8 +312,11 @@ function abortClicked() {
     </head>
     <body onload="load()">
         <section class="main">
+
             <div id="content">
-                <figure>
+ 
+
+                    <figure>
                     <div id="stream-container" class="image-container" width="800" height="600">
                         <button class="abortbtn" id="abort-btn" onclick="abortClicked()">Abort</button>
                         <button class="powerbtn" id="power-btn" onclick="powerClicked()">Power Off</button>
@@ -301,6 +350,28 @@ function abortClicked() {
             </div>
         </section>
         <input type="text" id="gcode" maxlength="25" size="40"><button id="sendButton" onclick="sendClicked()" placeholder="Enter GCode..">Send Code</button>
+		                       <div id="logo">
+                <label for="nav-toggle-cb" id="nav-toggle">&#9776;&nbsp;&nbsp;Toggle settings</label>
+            </div>
+			                                <div id="sidebar">
+                    <input type="checkbox" id="nav-toggle-cb">
+                    <nav id="menu">
+                        <div class="input-group" id="framesize-group">
+                            <label for="refreshrate">Refresh Rate</label>
+                            <select id="refreshrate" class="default-action">
+                                <option value="120000">120 seconds</option>
+                                <option value="60000" selected="selected">60 seconds</option>
+                                <option value="30000">30 seconds</option>
+                                <option value="20000">20 seconds</option>
+                                <option value="10000">10 seconds</option>
+                            </select>
+                        </div>
+
+                        <section id="buttons">
+                            <button id="get-still">Reboot ESP</button>
+                        </section>
+                    </nav>
+                </div>
     </body>
 </html>                     
 )rawliteral";
