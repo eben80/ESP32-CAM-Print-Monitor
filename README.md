@@ -35,6 +35,7 @@ You will need:
 ```
 In the code I'm using the following:
 Serial connection to printer GPIO 14 & 15 - diodes between both these and GND to level shift to 3.3V - observe polarity
+Pay attention to set the serial connection speed to the appropriate one for your printer.
 GPIO 13 for relay that switches mains on/off  - not implemented yet.
 ```
 
