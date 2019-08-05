@@ -20,16 +20,17 @@
 #include "Arduino.h"
 
 #define ledPin 4 //Pin for built-in LED flash
+#define RELAY_PIN 13 //Relay Pin for Printer Mains Relay
 
 //Start Config
 uint8_t debugmsg = 0;  //Debug Serial Messages
 int PrintSerial_Speed = 250000; //Speed for Serial connection to Printer - Ender 3 default is 115200
-#define RELAY_PIN 13 //Relay Pin for Printer Mains Relay
 #define SERIAL1_RXPIN 14 //Serial Pin for PrinterSerial
 #define SERIAL1_TXPIN 15 //Serial Pin for PrinterSerial
 String abortString = "M117 Print Aborted\nM25\nM410\nG91\nG0 Z10\n\nG0 E-5\nM400\nG90\nM104 S0\nM140 S0\nM106 S0\nG0 X0 Y220\nM18\n"; //GCode for doing an aborting a print.
 //End Config
 
+ 
 #ifdef __cplusplus
 extern "C"
 {

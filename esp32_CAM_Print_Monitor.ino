@@ -21,10 +21,12 @@
 const char *KNOWN_SSID[] = {"Belkin", "Mi Phone", "AndroidAP"};
 const char *KNOWN_PASSWORD[] = {"Fixui27d69!", "12345678", "7b95ad53f0c9"};
 const int KNOWN_SSID_COUNT = sizeof(KNOWN_SSID) / sizeof(KNOWN_SSID[0]);
+#define RELAY_PIN 13 //Relay Pin for Printer Mains Relay
 //Config end
 
 //Flash Pin
 #define ledPin 4
+
 
 #ifdef __cplusplus
 extern "C"
@@ -117,6 +119,7 @@ void setup()
   int i, n;
 
   pinMode(ledPin, OUTPUT);
+  pinMode(RELAY_PIN, OUTPUT);
 
   WRITE_PERI_REG(RTC_CNTL_BROWN_OUT_REG, 0); //disable brownout detector
   Serial.begin(115200);
