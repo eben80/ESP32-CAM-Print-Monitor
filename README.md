@@ -30,6 +30,7 @@ You will need:
    *  Ability to reboot device
 *  Test Mains Relay code
 *  GCode helper
+*  Dream goal..... copy files to SD-Card over WiFi... FAST.....
 
 ```
 Give examples
