@@ -262,7 +262,7 @@ function abortClicked() {
 }
      function powerClicked() {
      var x;
-     if (confirm("Are you sure you want to shut down the printer?") == true) {
+     if (confirm("Are you sure you want to power cycle the printer?") == true) {
                           $.ajax({
           url: 'control?var=shutdown&val=1',
           method: "GET",
@@ -320,7 +320,7 @@ function abortClicked() {
                     <figure>
                     <div id="stream-container" class="image-container" width="800" height="600">
                         <button class="abortbtn" id="abort-btn" onclick="abortClicked()">Abort</button>
-                        <button class="powerbtn" id="power-btn" onclick="powerClicked()">Power Off</button>
+                        <button class="powerbtn" id="power-btn" onclick="powerClicked()">Power</button>
                                     <div class="lightsw" id="light-sw">
                                     <label class="switch">
                                     <input type="checkbox" id ="lighttoggle">
@@ -911,14 +911,16 @@ static esp_err_t cmd_handler(httpd_req_t *req)
     }
     else if (!strcmp(variable, "shutdown"))
     {
-        shutdown = val;
-        if (shutdown)
+        // shutdown = val;
+        if (!shutdown)
         {
             digitalWrite(RELAY_PIN, HIGH);
+            shutdown = 1;
         }
-        else
+        else if (shutdown)
         {
             digitalWrite(RELAY_PIN, LOW);
+            shutdown = 0;
         }
     }
 
