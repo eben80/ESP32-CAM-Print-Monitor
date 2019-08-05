@@ -33,7 +33,9 @@ You will need:
 *  Dream goal..... copy files to SD-Card over WiFi... FAST.....
 
 ```
-Give examples
+In the code I'm using the following:
+Serial connection to printer GPIO 14 & 15 - diodes between both these and GND to level shift to 3.3V - observe polarity
+GPIO 13 for relay that switches mains on/off  - not implemented yet.
 ```
 
 
