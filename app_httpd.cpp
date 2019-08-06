@@ -112,215 +112,228 @@ body{font-family:Arial,Helvetica,sans-serif;background:#181818;color:#efefef;fon
         <script>
 function load() {
 
-        var myCookie = getCookie("refreshrate");
-
-    if (myCookie == null) {
-    document.cookie = "refreshrate=60000";
-        // do cookie doesn't exist stuff;
-    }
-    else {
-    refreshrate = getCookie("refreshrate");
-    $("#refreshrate").val(refreshrate);
-        // do cookie exists stuff
-    }
-//document.getElementById('stream').src = window.location.protocol + "//" + window.location.hostname + ":9601/stream";
-check();
-var refreshrate = 60000;
-var inst = setInterval(change, refreshrate);
-var query = setInterval(check, refreshrate);
-
-function change() {
-        $.ajax({
-          url: "status",
-          method: "GET",
-          success: function(data) {
-            var temperature = data.temperature;
-            var elem = document.getElementById("cpu-temp");
-            elem.innerHTML = 'CPU: ' + Number.parseFloat(temperature).toFixed(2) + ' &#8451';
-          },
-          error: function(data) {
-            console.log("Data Error");
-          }
-        });
-console.log("change executed");
-}
-
-
-
-function check() {
-        $.ajax({
-          url: "control?var=query&val=1",
-          method: "GET",
-          success: function(data2) {
-            var progress = data2.progress;
-            var exttemp = data2.exttemp;
-            var bedtemp = data2.bedtemp;
-            var elapsedt = data2.elapsedt;
-            var proglabel = document.getElementById("prog-label");
-            proglabel.innerHTML = 'Progress: ' + progress + ' %';
-            var exttemplabel = document.getElementById("ext-temp");
-            exttemplabel.innerHTML = 'Extruder: ' + exttemp + ' &#8451';
-            var bedtemplabel = document.getElementById("bed-temp");
-            bedtemplabel.innerHTML = 'Bed: ' + bedtemp + ' &#8451';
-            var elapsedlabel = document.getElementById("elapsed-time");
-            elapsedlabel.innerHTML = 'Elapsed Time: ' + elapsedt; 
-          },
-          error: function(data2) {
-            console.log("Data Error");
-          }
-        });
-console.log("check executed refresh=" + refreshrate);
-}
-
-$('#lighttoggle').change(function(){
-		if (document.getElementById('lighttoggle').checked) {
-        $.ajax({
-          type:'GET',
-          url:'control?var=light&val=1',
-          success:function(data)
-          {
-          }
-        });
-		} else {
-			        $.ajax({
-          type:'GET',
-          url:'control?var=light&val=0',
-          success:function(data)
-          {
-          }
-        });
-		}
-      });
-	  
-$('#refreshrate').change(function(){
-
-
     var myCookie = getCookie("refreshrate");
 
     if (myCookie == null) {
-    document.cookie = "refreshrate=60000";
+        document.cookie = "refreshrate=60000";
         // do cookie doesn't exist stuff;
-    }
-    else {
-    refreshrate = getCookie(refreshrate);
+    } else {
+        refreshrate = getCookie("refreshrate");
+        $("#refreshrate").val(refreshrate);
         // do cookie exists stuff
     }
+    //document.getElementById('stream').src = window.location.protocol + "//" + window.location.hostname + ":9601/stream";
+    check();
+    var refreshrate = 60000;
+    var inst = setInterval(change, refreshrate);
+    var query = setInterval(check, refreshrate);
 
-
-
-
-refreshrate = document.getElementById('refreshrate').value;
-document.cookie = "refreshrate=" + refreshrate;
-clearInterval(inst);
-inst = setInterval(change, refreshrate);
-clearInterval(query);
-query = setInterval(check, refreshrate);
-
-      });	  
-	  
-	  $('#streamtoggle').change(function(){
-		if (document.getElementById('streamtoggle').checked) {
-       document.getElementById('stream').src = window.location.protocol + "//" + window.location.hostname + ":9601/stream";
-		} else {
-window.stop
-document.getElementById('stream').src = "https://www.mapme.ga/ESP32-CAM-PM.jpg";
-		}
-      });
-      
-      function getCookie(name) {
-    var dc = document.cookie;
-    var prefix = name + "=";
-    var begin = dc.indexOf("; " + prefix);
-    if (begin == -1) {
-        begin = dc.indexOf(prefix);
-        if (begin != 0) return null;
+    function change() {
+        $.ajax({
+            url: "status",
+            method: "GET",
+            success: function(data) {
+                var temperature = data.temperature;
+                var elem = document.getElementById("cpu-temp");
+                elem.innerHTML = 'CPU: ' + Number.parseFloat(temperature).toFixed(2) + ' &#8451';
+            },
+            error: function(data) {
+                console.log("Data Error");
+            }
+        });
+        console.log("change executed");
     }
-    else
-    {
-        begin += 2;
-        var end = document.cookie.indexOf(";", begin);
-        if (end == -1) {
-        end = dc.length;
+
+
+
+    function check() {
+        $.ajax({
+            url: "control?var=query&val=1",
+            method: "GET",
+            success: function(data2) {
+                var progress = data2.progress;
+                var exttemp = data2.exttemp;
+                var bedtemp = data2.bedtemp;
+                var elapsedt = data2.elapsedt;
+                var proglabel = document.getElementById("prog-label");
+                proglabel.innerHTML = 'Progress: ' + progress + ' %';
+                var exttemplabel = document.getElementById("ext-temp");
+                exttemplabel.innerHTML = 'Extruder: ' + exttemp + ' &#8451';
+                var bedtemplabel = document.getElementById("bed-temp");
+                bedtemplabel.innerHTML = 'Bed: ' + bedtemp + ' &#8451';
+                var elapsedlabel = document.getElementById("elapsed-time");
+                elapsedlabel.innerHTML = 'Elapsed Time: ' + elapsedt;
+            },
+            error: function(data2) {
+                console.log("Data Error");
+            }
+        });
+        console.log("check executed refresh=" + refreshrate);
+    }
+
+    $('#lighttoggle').change(function() {
+        if (document.getElementById('lighttoggle').checked) {
+            $.ajax({
+                type: 'GET',
+                url: 'control?var=light&val=1',
+                success: function(data) {}
+            });
+        } else {
+            $.ajax({
+                type: 'GET',
+                url: 'control?var=light&val=0',
+                success: function(data) {}
+            });
         }
-    }
-    // because unescape has been deprecated, replaced with decodeURI
-    //return unescape(dc.substring(begin + prefix.length, end));
-    return decodeURI(dc.substring(begin + prefix.length, end));
-} 
-	  
-}
+    });
 
+    $('#refreshrate').change(function() {
+
+
+        var myCookie = getCookie("refreshrate");
+
+        if (myCookie == null) {
+            document.cookie = "refreshrate=60000";
+            // do cookie doesn't exist stuff;
+        } else {
+            refreshrate = getCookie(refreshrate);
+            // do cookie exists stuff
+        }
+
+
+
+
+        refreshrate = document.getElementById('refreshrate').value;
+        document.cookie = "refreshrate=" + refreshrate;
+        clearInterval(inst);
+        inst = setInterval(change, refreshrate);
+        clearInterval(query);
+        query = setInterval(check, refreshrate);
+
+    });
+
+    $('#streamtoggle').change(function() {
+        if (document.getElementById('streamtoggle').checked) {
+            document.getElementById('stream').src = window.location.protocol + "//" + window.location.hostname + ":9601/stream";
+        } else {
+            window.stop
+            document.getElementById('stream').src = "https://www.mapme.ga/ESP32-CAM-PM.jpg";
+        }
+    });
+
+    function getCookie(name) {
+        var dc = document.cookie;
+        var prefix = name + "=";
+        var begin = dc.indexOf("; " + prefix);
+        if (begin == -1) {
+            begin = dc.indexOf(prefix);
+            if (begin != 0) return null;
+        } else {
+            begin += 2;
+            var end = document.cookie.indexOf(";", begin);
+            if (end == -1) {
+                end = dc.length;
+            }
+        }
+        // because unescape has been deprecated, replaced with decodeURI
+        //return unescape(dc.substring(begin + prefix.length, end));
+        return decodeURI(dc.substring(begin + prefix.length, end));
+    }
+
+}
 </script>
 <script>
 function abortClicked() {
-     var x;
-     if (confirm("Are you sure you want to abort the print?") == true) {
-                 $.ajax({
-          url: 'control?var=abort&val=1',
-          method: "GET",
-          success: function(data) {
- 
-          },
-          error: function(data) {
-            console.log("Data Error");
-          }
+    var x;
+    if (confirm("Are you sure you want to abort the print?") == true) {
+        $.ajax({
+            url: 'control?var=abort&val=1',
+            method: "GET",
+            success: function(data) {
+
+            },
+            error: function(data) {
+                console.log("Data Error");
+            }
         });
-     } else {
-         x = "You pressed Cancel!";
-     }
-     return x; 
+    } else {
+        x = "You pressed Cancel!";
+    }
+    return x;
 
 
 }
-     function powerClicked() {
-     var x;
-     if (confirm("Are you sure you want to power cycle the printer?") == true) {
-                          $.ajax({
-          url: 'control?var=shutdown&val=1',
-          method: "GET",
-          success: function(data) {
-          
-          },
-          error: function(data) {
-            console.log("Data Error");
-          }
-        });
-     } else {
-         x = "You pressed Cancel!";
-     }
-     return x; 
-     }
-	 
-	      function sendClicked() {
-     var x;
-	 if (document.getElementById('gcode').value.length > 0){
-	 x = document.getElementById('gcode').value + '\n';
-	 x = encodeURI(x);
-	 console.log(x);
-	 document.getElementById('sendButton').disabled = true;
-	 
-	                           $.ajax({
-          url: 'control?var=command&val=' + x,
-          method: "GET",
-          success: function(data3) {
-              var cmdresponse = data3.cmdresponse;
-              
-          document.getElementById('gcode').value = "";
-          document.getElementById('gcode').placeholder = cmdresponse;
 
-		  document.getElementById('sendButton').disabled = false;
-          },
-          error: function(data) {
-            console.log("Data Error");
-			document.getElementById('sendButton').disabled = false;
-          }
+function rebootClicked() {
+    var x;
+    if (confirm("Are you sure you want to reboot the ESP?") == true) {
+        $.ajax({
+            url: 'control?var=reboot&val=1',
+            method: "GET",
+            success: function(data) {
+
+            },
+            error: function(data) {
+                console.log("Data Error");
+            }
         });
-} else {
-  alert("No command entered..");
+    } else {
+        x = "You pressed Cancel!";
+    }
+    return x;
+
+
 }
 
-    
-     }
+function powerClicked() {
+    var x;
+    if (confirm("Are you sure you want to power cycle the printer?") == true) {
+        $.ajax({
+            url: 'control?var=shutdown&val=1',
+            method: "GET",
+            success: function(data) {
+
+            },
+            error: function(data) {
+                console.log("Data Error");
+            }
+        });
+    } else {
+        x = "You pressed Cancel!";
+    }
+    return x;
+}
+
+function sendClicked() {
+    var x;
+    if (document.getElementById('gcode').value.length > 0) {
+        x = document.getElementById('gcode').value + '\n';
+        x = encodeURI(x);
+        console.log(x);
+        document.getElementById('sendButton').disabled = true;
+
+        $.ajax({
+            url: 'control?var=command&val=' + x,
+            method: "GET",
+            success: function(data3) {
+                var cmdresponse = data3.cmdresponse;
+
+                document.getElementById('gcode').value = "";
+                document.getElementById('gcode').placeholder = cmdresponse;
+
+                document.getElementById('sendButton').disabled = false;
+            },
+            error: function(data) {
+                console.log("Data Error");
+                document.getElementById('sendButton').disabled = false;
+            }
+        });
+    } else {
+        alert("No command entered..");
+    }
+
+
+}
 </script>
     </head>
     <body onload="load()">
@@ -381,7 +394,7 @@ function abortClicked() {
                         </div>
 
                         <section id="buttons">
-                            <button id="get-still">Reboot ESP</button>
+                            <button id="rebootbtn" onclick="rebootClicked()">Reboot ESP</button>
                         </section>
                     </nav>
                 </div>
@@ -662,7 +675,7 @@ static esp_err_t cmd_handler(httpd_req_t *req)
         {
             Serial.println("M27 Sent");
         }
-        delay(1000);
+        delay(700);
         while (PrintSerial.available())
         {
 
@@ -733,7 +746,7 @@ static esp_err_t cmd_handler(httpd_req_t *req)
         {
             Serial.println("M31 Sent");
         }
-        delay(1000);
+        delay(700);
         while (PrintSerial.available())
         {
 
@@ -804,7 +817,7 @@ static esp_err_t cmd_handler(httpd_req_t *req)
         {
             Serial.println("M105 Sent");
         }
-        delay(1000);
+        delay(700);
         while (PrintSerial.available())
         {
 
