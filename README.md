@@ -22,13 +22,21 @@ You will need:
 5.  Serial connection from 3D Printer
 6.  5V Power source or 5V connection from Printer
 
+## Connection diagram
+
+Example without mains relay function:
+[![picture alt](https://i.ibb.co/stBdbZn/Ender3-pptx-Microsoft-Power-Point-000292.jpg "Wiring diagram without mains relay")](https://ibb.co/stBdbZn)
+
+Example including mains relay function:
+[![picture alt](https://i.ibb.co/N6F7hCz/Ender3-relay-pptx-Microsoft-Power-Point-000291.jpg "Wiring diagram with mains relay")](https://ibb.co/N6F7hCz)
+
 ### TODO
 
 *  Implement Authentication
-*  Implement expandable menu to:
-   *  Configurable data refresh rate
-   *  Ability to reboot device
-*  Test Mains Relay code
+*  ~~Implement expandable menu to:~~
+   *  ~~Configurable data refresh rate~~
+   *  ~~Ability to reboot device~~
+*  ~~Test Mains Relay code~~
 *  GCode helper
 *  Dream goal..... copy files to SD-Card over WiFi... FAST.....
 
