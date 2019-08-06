@@ -111,6 +111,18 @@ body{font-family:Arial,Helvetica,sans-serif;background:#181818;color:#efefef;fon
                 <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
         <script>
 function load() {
+
+        var myCookie = getCookie("refreshrate");
+
+    if (myCookie == null) {
+    document.cookie = "refreshrate=60000";
+        // do cookie doesn't exist stuff;
+    }
+    else {
+    refreshrate = getCookie("refreshrate");
+    $("#refreshrate").val(refreshrate);
+        // do cookie exists stuff
+    }
 //document.getElementById('stream').src = window.location.protocol + "//" + window.location.hostname + ":9601/stream";
 check();
 var refreshrate = 60000;
