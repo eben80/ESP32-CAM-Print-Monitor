@@ -19,18 +19,17 @@
 #include "esp_camera.h"
 #include "Arduino.h"
 
-#define ledPin 4 //Pin for built-in LED flash
+#define ledPin 4     //Pin for built-in LED flash
 #define RELAY_PIN 13 //Relay Pin for Printer Mains Relay
 
 //Start Config
-uint8_t debugmsg = 0;  //Debug Serial Messages
-int PrintSerial_Speed = 250000; //Speed for Serial connection to Printer - Ender 3 default is 115200
-#define SERIAL1_RXPIN 14 //Serial Pin for PrinterSerial
-#define SERIAL1_TXPIN 15 //Serial Pin for PrinterSerial
+uint8_t debugmsg = 1;                                                                                                                 //Debug Serial Messages
+int PrintSerial_Speed = 250000;                                                                                                       //Speed for Serial connection to Printer - Ender 3 default is 115200
+#define SERIAL1_RXPIN 14                                                                                                              //Serial Pin for PrinterSerial
+#define SERIAL1_TXPIN 15                                                                                                              //Serial Pin for PrinterSerial
 String abortString = "M117 Print Aborted\nM25\nM410\nG91\nG0 Z10\n\nG0 E-5\nM400\nG90\nM104 S0\nM140 S0\nM106 S0\nG0 X0 Y220\nM18\n"; //GCode for doing an aborting a print.
 //End Config
 
- 
 #ifdef __cplusplus
 extern "C"
 {
@@ -43,8 +42,6 @@ extern "C"
 #endif
 
 uint8_t temprature_sens_read();
-
-
 
 unsigned char h2int(char c)
 {
@@ -111,20 +108,21 @@ body{font-family:Arial,Helvetica,sans-serif;background:#181818;color:#efefef;fon
                 <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
         <script>
 function load() {
-
+        var refreshrate = 60000;
     var myCookie = getCookie("refreshrate");
 
     if (myCookie == null) {
         document.cookie = "refreshrate=60000";
+
         // do cookie doesn't exist stuff;
     } else {
         refreshrate = getCookie("refreshrate");
         $("#refreshrate").val(refreshrate);
         // do cookie exists stuff
     }
-    //document.getElementById('stream').src = window.location.protocol + "//" + window.location.hostname + ":9601/stream";
+    change();
     check();
-    var refreshrate = 60000;
+
     var inst = setInterval(change, refreshrate);
     var query = setInterval(check, refreshrate);
 
@@ -381,6 +379,7 @@ function sendClicked() {
                                 <option value="30000">30 seconds</option>
                                 <option value="20000">20 seconds</option>
                                 <option value="10000">10 seconds</option>
+                                <option value="3000">3 seconds</option>
                             </select>
                         </div>
 
@@ -509,7 +508,6 @@ static esp_err_t stream_handler(httpd_req_t *req)
 static esp_err_t cmd_handler(httpd_req_t *req)
 {
 
-
     HardwareSerial PrintSerial(1);
     PrintSerial.begin(PrintSerial_Speed, SERIAL_8N1, SERIAL1_RXPIN, SERIAL1_TXPIN);
     char *buf;
@@ -535,7 +533,10 @@ static esp_err_t cmd_handler(httpd_req_t *req)
             if (httpd_query_key_value(buf, "var", variable, sizeof(variable)) == ESP_OK &&
                 httpd_query_key_value(buf, "val", value, sizeof(value)) == ESP_OK)
             {
-             if (debugmsg) {  Serial.println(value);}
+                if (debugmsg)
+                {
+                    // Serial.println(value);
+                }
             }
             else
             {
@@ -930,11 +931,19 @@ static esp_err_t cmd_handler(httpd_req_t *req)
         // shutdown = val;
         if (!shutdown)
         {
+            if (debugmsg)
+            {
+                Serial.println("Power Off");
+            }
             digitalWrite(RELAY_PIN, HIGH);
             shutdown = 1;
         }
         else if (shutdown)
         {
+            if (debugmsg)
+            {
+                Serial.println("Power On");
+            }
             digitalWrite(RELAY_PIN, LOW);
             shutdown = 0;
         }
@@ -945,8 +954,9 @@ static esp_err_t cmd_handler(httpd_req_t *req)
         String cmdText = value;
         cmdText = urldecode(cmdText);
         PrintSerial.print(cmdText);
-        if (debugmsg){        
-        Serial.print(cmdText + " Command Sent");
+        if (debugmsg)
+        {
+            Serial.print(cmdText + " Command Sent");
         }
         delay(2000);
         while (PrintSerial.available())
@@ -966,7 +976,6 @@ static esp_err_t cmd_handler(httpd_req_t *req)
             httpd_resp_set_hdr(req, "Access-Control-Allow-Origin", "*");
             return httpd_resp_send(req, json_response2, strlen(json_response2));
         }
-
     }
 
     else
