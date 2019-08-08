@@ -23,6 +23,7 @@
 #define RELAY_PIN 13 //Relay Pin for Printer Mains Relay
 
 //Start Config
+String verNum = "V0.9";
 uint8_t debugmsg = 1;                                                                                                                 //Debug Serial Messages
 int PrintSerial_Speed = 250000;                                                                                                       //Speed for Serial connection to Printer - Ender 3 default is 115200
 #define SERIAL1_RXPIN 14                                                                                                              //Serial Pin for PrinterSerial
@@ -153,12 +154,13 @@ function load() {
                 var exttemp = data2.exttemp;
                 var bedtemp = data2.bedtemp;
                 var elapsedt = data2.elapsedt;
+                var version = data2.ver;
                 var proglabel = document.getElementById("prog-label");
                 proglabel.innerHTML = 'Progress: ' + progress + ' %';
                 var exttemplabel = document.getElementById("ext-temp");
                 exttemplabel.innerHTML = 'Extruder: ' + exttemp + ' &#8451';
                 var bedtemplabel = document.getElementById("bed-temp");
-                bedtemplabel.innerHTML = 'Bed: ' + bedtemp + ' &#8451';
+                bedtemplabel.innerHTML = version + 'Bed: ' + bedtemp + ' &#8451';
                 var elapsedlabel = document.getElementById("elapsed-time");
                 elapsedlabel.innerHTML = 'Elapsed Time: ' + elapsedt;
             },
@@ -186,19 +188,6 @@ function load() {
     });
 
     $('#refreshrate').change(function() {
-
-
-        var myCookie = getCookie("refreshrate");
-
-        if (myCookie == null) {
-            document.cookie = "refreshrate=60000";
-            // do cookie doesn't exist stuff;
-        } else {
-            refreshrate = getCookie(refreshrate);
-            // do cookie exists stuff
-        }
-
-
 
 
         refreshrate = document.getElementById('refreshrate').value;
@@ -882,7 +871,8 @@ static esp_err_t cmd_handler(httpd_req_t *req)
         p += sprintf(p, "\"progress\":%.2f,", progress);
         p += sprintf(p, "\"exttemp\":%s,", exttemp.c_str());
         p += sprintf(p, "\"bedtemp\":%s,", bedtemp.c_str());
-        p += sprintf(p, "\"elapsedt\":\"%s\"", elapsedt.c_str());
+        p += sprintf(p, "\"elapsedt\":\"%s\",", elapsedt.c_str());
+        p += sprintf(p, "\"ver\":\"%s\"", verNum.c_str());
         *p++ = '}';
         *p++ = 0;
         httpd_resp_set_type(req, "application/json");
