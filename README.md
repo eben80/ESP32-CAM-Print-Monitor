@@ -34,6 +34,11 @@ Example including mains relay function:
 
 [![picture alt](https://i.ibb.co/N6F7hCz/Ender3-relay-pptx-Microsoft-Power-Point-000291.jpg "Wiring diagram with mains relay")](https://ibb.co/N6F7hCz)
 
+
+Practical Example:
+
+[![picture alt](https://i.ibb.co/CWT51RG/Presentation1-Microsoft-Power-Point-000293.jpg "Actual wiring")](https://ibb.co/CWT51RG)
+
 ### TODO
 
 *  Implement Authentication
