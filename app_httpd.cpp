@@ -23,7 +23,7 @@
 #define RELAY_PIN 13 //Relay Pin for Printer Mains Relay
 
 //Start Config
-String verNum = "V0.9";
+// String verNum = "V0.9";
 uint8_t debugmsg = 1;                                                                                                                 //Debug Serial Messages
 int PrintSerial_Speed = 250000;                                                                                                       //Speed for Serial connection to Printer - Ender 3 default is 115200
 #define SERIAL1_RXPIN 14                                                                                                              //Serial Pin for PrinterSerial
@@ -137,7 +137,8 @@ function load() {
                 elem.innerHTML = 'CPU: ' + Number.parseFloat(temperature).toFixed(2) + ' &#8451';
             },
             error: function(data) {
-                console.log("Data Error");
+                console.log("Data Error - status");
+                console.log(data);
             }
         });
         console.log("change executed");
@@ -154,18 +155,20 @@ function load() {
                 var exttemp = data2.exttemp;
                 var bedtemp = data2.bedtemp;
                 var elapsedt = data2.elapsedt;
-                var version = data2.ver;
+             //   var version = data2.ver;
                 var proglabel = document.getElementById("prog-label");
                 proglabel.innerHTML = 'Progress: ' + progress + ' %';
                 var exttemplabel = document.getElementById("ext-temp");
                 exttemplabel.innerHTML = 'Extruder: ' + exttemp + ' &#8451';
                 var bedtemplabel = document.getElementById("bed-temp");
-                bedtemplabel.innerHTML = version + 'Bed: ' + bedtemp + ' &#8451';
+                bedtemplabel.innerHTML = 'Bed: ' + bedtemp + ' &#8451';
                 var elapsedlabel = document.getElementById("elapsed-time");
                 elapsedlabel.innerHTML = 'Elapsed Time: ' + elapsedt;
+              //  $('#vernum').val(version);
             },
             error: function(data2) {
-                console.log("Data Error");
+                console.log("Data Error - query");
+                console.log (data2);
             }
         });
         console.log("check executed refresh=" + refreshrate);
@@ -240,7 +243,7 @@ function abortClicked() {
 
             },
             error: function(data) {
-                console.log("Data Error");
+                console.log("Data Error - abort");
             }
         });
     } else {
@@ -273,7 +276,7 @@ function powerClicked() {
 
             },
             error: function(data) {
-                console.log("Data Error");
+                console.log("Data Error - shutdown");
             }
         });
     } else {
@@ -302,7 +305,7 @@ function sendClicked() {
                 document.getElementById('sendButton').disabled = false;
             },
             error: function(data) {
-                console.log("Data Error");
+                console.log("Data Error - gcode command");
                 document.getElementById('sendButton').disabled = false;
             }
         });
@@ -374,6 +377,7 @@ function sendClicked() {
 
                         <section id="buttons">
                             <button id="rebootbtn" onclick="rebootClicked()">Reboot ESP</button>
+
                         </section>
                     </nav>
                 </div>
@@ -665,11 +669,12 @@ static esp_err_t cmd_handler(httpd_req_t *req)
             if (a.startsWith("SD printing byte "))
             { //Printing progress response
 
-                a.remove(0, 17);
                 if (debugmsg)
                 {
                     Serial.println("Printing progress Triggered");
+                    Serial.println(a);
                 }
+                a.remove(0, 17);
                 ind1;
                 ind1 = a.indexOf('/');
                 part1 = a.substring(0, ind1);
@@ -683,6 +688,7 @@ static esp_err_t cmd_handler(httpd_req_t *req)
                 if (debugmsg)
                 {
                     Serial.println("Temperature response Triggered");
+                    Serial.println(a);
                 }
                 a.remove(0, 5);
                 bedindex = a.indexOf(":");
@@ -708,6 +714,7 @@ static esp_err_t cmd_handler(httpd_req_t *req)
                 if (debugmsg)
                 {
                     Serial.println("Elapsed Time Response Triggered");
+                    Serial.println(a);
                 }
                 lastind = a.lastIndexOf(":");
                 a.remove(0, lastind);
@@ -736,11 +743,12 @@ static esp_err_t cmd_handler(httpd_req_t *req)
             if (a.startsWith("SD printing byte "))
             { //Printing progress response
 
-                a.remove(0, 17);
                 if (debugmsg)
                 {
                     Serial.println("Printing progress Triggered");
+                    Serial.println(a);
                 }
+                a.remove(0, 17);
                 ind1;
                 ind1 = a.indexOf('/');
                 part1 = a.substring(0, ind1);
@@ -754,6 +762,7 @@ static esp_err_t cmd_handler(httpd_req_t *req)
                 if (debugmsg)
                 {
                     Serial.println("Temperature response Triggered");
+                    Serial.println(a);
                 }
                 a.remove(0, 5);
                 bedindex = a.indexOf(":");
@@ -779,6 +788,7 @@ static esp_err_t cmd_handler(httpd_req_t *req)
                 if (debugmsg)
                 {
                     Serial.println("Elapsed Time Response Triggered");
+                    Serial.println(a);
                 }
                 lastind = a.lastIndexOf(":");
                 a.remove(0, lastind);
@@ -807,11 +817,12 @@ static esp_err_t cmd_handler(httpd_req_t *req)
             if (a.startsWith("SD printing byte "))
             { //Printing progress response
 
-                a.remove(0, 17);
                 if (debugmsg)
                 {
                     Serial.println("Printing progress Triggered");
+                    Serial.println(a);
                 }
+                a.remove(0, 17);
                 ind1;
                 ind1 = a.indexOf('/');
                 part1 = a.substring(0, ind1);
@@ -825,6 +836,7 @@ static esp_err_t cmd_handler(httpd_req_t *req)
                 if (debugmsg)
                 {
                     Serial.println("Temperature response Triggered");
+                    Serial.println(a);
                 }
                 a.remove(0, 5);
                 bedindex = a.indexOf(":");
@@ -850,6 +862,7 @@ static esp_err_t cmd_handler(httpd_req_t *req)
                 if (debugmsg)
                 {
                     Serial.println("Elapsed Time Response Triggered");
+                    Serial.println(a);
                 }
                 lastind = a.lastIndexOf(":");
                 a.remove(0, lastind);
@@ -871,8 +884,8 @@ static esp_err_t cmd_handler(httpd_req_t *req)
         p += sprintf(p, "\"progress\":%.2f,", progress);
         p += sprintf(p, "\"exttemp\":%s,", exttemp.c_str());
         p += sprintf(p, "\"bedtemp\":%s,", bedtemp.c_str());
-        p += sprintf(p, "\"elapsedt\":\"%s\",", elapsedt.c_str());
-        p += sprintf(p, "\"ver\":\"%s\"", verNum.c_str());
+        p += sprintf(p, "\"elapsedt\":\"%s\"", elapsedt.c_str());
+        // p += sprintf(p, "\"ver\":\"%s\"", verNum.c_str());
         *p++ = '}';
         *p++ = 0;
         httpd_resp_set_type(req, "application/json");
