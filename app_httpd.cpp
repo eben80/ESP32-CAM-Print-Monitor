@@ -298,7 +298,7 @@ function sendClicked() {
             method: "GET",
             success: function(data3) {
                 var cmdresponse = data3.cmdresponse;
-
+                console.log(cmdresponse);
                 document.getElementById('gcode').value = "";
                 document.getElementById('gcode').placeholder = cmdresponse;
 
@@ -881,9 +881,9 @@ static esp_err_t cmd_handler(httpd_req_t *req)
         static char json_response2[1024];
         char *p = json_response2;
         *p++ = '{';
-        p += sprintf(p, "\"progress\":%.2f,", progress);
-        p += sprintf(p, "\"exttemp\":%s,", exttemp.c_str());
-        p += sprintf(p, "\"bedtemp\":%s,", bedtemp.c_str());
+        p += sprintf(p, "\"progress\":\"%.2f\",", progress);
+        p += sprintf(p, "\"exttemp\":\"%s\",", exttemp.c_str());
+        p += sprintf(p, "\"bedtemp\":\"%s\",", bedtemp.c_str());
         p += sprintf(p, "\"elapsedt\":\"%s\"", elapsedt.c_str());
         // p += sprintf(p, "\"ver\":\"%s\"", verNum.c_str());
         *p++ = '}';
