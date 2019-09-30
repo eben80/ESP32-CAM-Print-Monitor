@@ -18,6 +18,8 @@
 #include "esp_http_server.h"
 #include "esp_camera.h"
 #include "Arduino.h"
+//#include "SPIFFS.h"
+//#include "FS.h"
 
 #define ledPin 4     //Pin for built-in LED flash
 #define RELAY_PIN 13 //Relay Pin for Printer Mains Relay
@@ -113,7 +115,7 @@ function load() {
     var myCookie = getCookie("refreshrate");
 
     if (myCookie == null) {
-        document.cookie = "refreshrate=60000";
+        document.cookie = "refreshrate=60000;expires=Fri, 31 Dec 9999 23:59:59 GMT;path=/";
 
         // do cookie doesn't exist stuff;
     } else {
@@ -194,7 +196,7 @@ function load() {
 
 
         refreshrate = document.getElementById('refreshrate').value;
-        document.cookie = "refreshrate=" + refreshrate;
+        document.cookie = "refreshrate=" + refreshrate + ";expires=Fri, 31 Dec 9999 23:59:59 GMT;path=/";
         clearInterval(inst);
         inst = setInterval(change, refreshrate);
         clearInterval(query);
@@ -321,7 +323,7 @@ function sendClicked() {
         <section class="main">
 
             <div id="content">
- 
+
 
                     <figure>
                     <div id="stream-container" class="image-container" width="800" height="600">
@@ -356,7 +358,7 @@ function sendClicked() {
                 </figure>
             </div>
         </section>
-        <input type="text" id="gcode" maxlength="25" size="40"><button id="sendButton" onclick="sendClicked()" placeholder="Enter GCode.." style="display:inline-block;">Send Code</button>
+        <textarea id="gcode" rows="2" cols="40"></textarea><button id="sendButton" onclick="sendClicked()" placeholder="Enter GCode.." style="display:inline-block;">Send Code</button>
 		                       <div id="logo">
                 <label for="nav-toggle-cb" id="nav-toggle">&#9776;&nbsp;&nbsp;Toggle settings</label>
             </div>
@@ -433,6 +435,8 @@ static esp_err_t stream_handler(httpd_req_t *req)
         return res;
     }
 
+    httpd_resp_set_hdr(req, "Access-Control-Allow-Origin", "*");
+
     while (true)
     {
 
@@ -491,6 +495,7 @@ static esp_err_t stream_handler(httpd_req_t *req)
         }
         if (res != ESP_OK)
         {
+            Serial.println(res);
             break;
         }
     }
@@ -962,23 +967,45 @@ static esp_err_t cmd_handler(httpd_req_t *req)
             Serial.print(cmdText + " Command Sent");
         }
         delay(2000);
-        while (PrintSerial.available())
-        {
 
-            String cmdResponse = PrintSerial.readStringUntil('\n');
-            static char json_response2[1024];
-            char *p = json_response2;
-            *p++ = '{';
-            // p += sprintf(p, "\"progress\":%.2f,", progress);
-            // p += sprintf(p, "\"exttemp\":%s,", exttemp.c_str());
-            // p += sprintf(p, "\"bedtemp\":%s,", bedtemp.c_str());
-            p += sprintf(p, "\"cmdresponse\":\"%s\"", cmdResponse.c_str());
-            *p++ = '}';
-            *p++ = 0;
-            httpd_resp_set_type(req, "application/json");
-            httpd_resp_set_hdr(req, "Access-Control-Allow-Origin", "*");
-            return httpd_resp_send(req, json_response2, strlen(json_response2));
+        String cmdResponse = "";
+        String cmdConcat = "";
+
+
+        bool breakOuterLoop = false;
+
+        for (;;)
+        {
+            if(breakOuterLoop) {
+                break;
+            }
+
+            if (PrintSerial.available() >= 1)
+            {
+                while (PrintSerial.available())
+                {
+                    cmdResponse = PrintSerial.readStringUntil('\n');
+                    cmdResponse = cmdResponse + "\n";
+                    cmdConcat = cmdConcat + cmdResponse;
+                    
+                    if (cmdResponse.indexOf("ok") > 0)
+                    {
+                        breakOuterLoop = true;
+                        break;
+                    }
+                }
+            }
+            
         }
+        static char json_response2[4096];
+        char *p = json_response2;
+        *p++ = '{';
+        p += sprintf(p, "\"cmdresponse\":\"%s\"", cmdConcat.c_str());
+        *p++ = '}';
+        *p++ = 0;
+        httpd_resp_set_type(req, "application/json");
+        httpd_resp_set_hdr(req, "Access-Control-Allow-Origin", "*");
+        return httpd_resp_send(req, json_response2, strlen(json_response2));
     }
 
     else

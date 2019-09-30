@@ -5,6 +5,8 @@
 #include <ArduinoOTA.h>
 #include <soc/soc.h>
 #include <soc/rtc_cntl_reg.h>
+#include "SPIFFS.h"
+//#include "FS.h"
 // #include <HardwareSerial.h>
 //#include <ESP32_Servo.h>
 
@@ -34,7 +36,7 @@ extern "C"
 {
 #endif
 
-  uint8_t temprature_sens_read();
+uint8_t temprature_sens_read();
 
 #ifdef __cplusplus
 }
@@ -124,9 +126,23 @@ void setup()
 
   WRITE_PERI_REG(RTC_CNTL_BROWN_OUT_REG, 0); //disable brownout detector
   Serial.begin(115200);
+  Serial.setTimeout(5000);
   Serial.setDebugOutput(true);
   Serial.println();
   // PrintSerial.begin(115200, SERIAL_8N1, SERIAL1_RXPIN, SERIAL1_TXPIN);
+
+//  // Initialize SPIFFS
+//  if (!SPIFFS.begin(true)) {
+//    Serial.println("An Error has occurred while mounting SPIFFS");
+//    return;
+//  }
+//
+//  File file2 = SPIFFS.open("/index.html");
+//  if (!file2) {
+//    Serial.println("Failed to open file for reading");
+//    return;
+//  }
+
 
   camera_config_t config;
   config.ledc_channel = LEDC_CHANNEL_0;
@@ -269,35 +285,35 @@ void setup()
   // End OTA Config
 
   ArduinoOTA
-      .onStart([]() {
-        String type;
-        if (ArduinoOTA.getCommand() == U_FLASH)
-          type = "sketch";
-        else // U_SPIFFS
-          type = "filesystem";
+  .onStart([]() {
+    String type;
+    if (ArduinoOTA.getCommand() == U_FLASH)
+      type = "sketch";
+    else // U_SPIFFS
+      type = "filesystem";
 
-        // NOTE: if updating SPIFFS this would be the place to unmount SPIFFS using SPIFFS.end()
-        Serial.println("Start updating " + type);
-      })
-      .onEnd([]() {
-        Serial.println("\nEnd");
-      })
-      .onProgress([](unsigned int progress, unsigned int total) {
-        Serial.printf("Progress: %u%%\r", (progress / (total / 100)));
-      })
-      .onError([](ota_error_t error) {
-        Serial.printf("Error[%u]: ", error);
-        if (error == OTA_AUTH_ERROR)
-          Serial.println("Auth Failed");
-        else if (error == OTA_BEGIN_ERROR)
-          Serial.println("Begin Failed");
-        else if (error == OTA_CONNECT_ERROR)
-          Serial.println("Connect Failed");
-        else if (error == OTA_RECEIVE_ERROR)
-          Serial.println("Receive Failed");
-        else if (error == OTA_END_ERROR)
-          Serial.println("End Failed");
-      });
+    // NOTE: if updating SPIFFS this would be the place to unmount SPIFFS using SPIFFS.end()
+    Serial.println("Start updating " + type);
+  })
+  .onEnd([]() {
+    Serial.println("\nEnd");
+  })
+  .onProgress([](unsigned int progress, unsigned int total) {
+    Serial.printf("Progress: %u%%\r", (progress / (total / 100)));
+  })
+  .onError([](ota_error_t error) {
+    Serial.printf("Error[%u]: ", error);
+    if (error == OTA_AUTH_ERROR)
+      Serial.println("Auth Failed");
+    else if (error == OTA_BEGIN_ERROR)
+      Serial.println("Begin Failed");
+    else if (error == OTA_CONNECT_ERROR)
+      Serial.println("Connect Failed");
+    else if (error == OTA_RECEIVE_ERROR)
+      Serial.println("Receive Failed");
+    else if (error == OTA_END_ERROR)
+      Serial.println("End Failed");
+  });
 
   ArduinoOTA.begin();
 
