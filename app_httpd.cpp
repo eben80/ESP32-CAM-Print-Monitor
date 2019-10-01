@@ -971,12 +971,16 @@ static esp_err_t cmd_handler(httpd_req_t *req)
         String cmdResponse = "";
         String cmdConcat = "";
 
-
         bool breakOuterLoop = false;
 
         for (;;)
         {
-            if(breakOuterLoop) {
+            if (breakOuterLoop)
+            {
+                if (debugmsg)
+                {
+                    Serial.println("Breaking outer loop...");
+                }
                 break;
             }
 
@@ -984,18 +988,25 @@ static esp_err_t cmd_handler(httpd_req_t *req)
             {
                 while (PrintSerial.available())
                 {
+                    if (debugmsg)
+                    {
+                        Serial.println("Reading PrintSerial...");
+                    }
                     cmdResponse = PrintSerial.readStringUntil('\n');
                     cmdResponse = cmdResponse + "\n";
                     cmdConcat = cmdConcat + cmdResponse;
-                    
+
                     if (cmdResponse.indexOf("ok") > 0)
                     {
+                        if (debugmsg)
+                        {
+                            Serial.println("ok reached...");
+                        }
                         breakOuterLoop = true;
                         break;
                     }
                 }
             }
-            
         }
         static char json_response2[4096];
         char *p = json_response2;
