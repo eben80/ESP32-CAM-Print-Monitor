@@ -30,7 +30,7 @@ Example without mains relay function:
 
 
 
-Example including mains relay function:
+Example including mains relay function(common ground connection between printer and ESP32 not drawn):
 
 [![picture alt](https://i.ibb.co/N6F7hCz/Ender3-relay-pptx-Microsoft-Power-Point-000291.jpg "Wiring diagram with mains relay")](https://ibb.co/N6F7hCz)
 
@@ -46,6 +46,7 @@ Practical Example:
    *  ~~Configurable data refresh rate~~
    *  ~~Ability to reboot device~~
 *  ~~Test Mains Relay code~~
+*  ~~Implement OTA updates~~
 *  GCode helper
 *  Dream goal..... copy files to SD-Card over WiFi... FAST.....
 
