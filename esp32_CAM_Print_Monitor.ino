@@ -25,6 +25,7 @@
 const char *KNOWN_SSID[] = {"Belkin", "Mi Phone", "AndroidAP"};
 const char *KNOWN_PASSWORD[] = {"Fixui27d69!", "12345678", "7b95ad53f0c9"};
 const int KNOWN_SSID_COUNT = sizeof(KNOWN_SSID) / sizeof(KNOWN_SSID[0]);
+
 #define RELAY_PIN 13 //Relay Pin for Printer Mains Relay
 //Config end
 

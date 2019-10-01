@@ -508,6 +508,7 @@ static esp_err_t cmd_handler(httpd_req_t *req)
 
     HardwareSerial PrintSerial(1);
     PrintSerial.begin(PrintSerial_Speed, SERIAL_8N1, SERIAL1_RXPIN, SERIAL1_TXPIN);
+    PrintSerial.setRxBufferSize(15000);
     char *buf;
     size_t buf_len;
     char variable[32] = {
@@ -964,17 +965,21 @@ static esp_err_t cmd_handler(httpd_req_t *req)
         PrintSerial.print(cmdText);
         if (debugmsg)
         {
-            Serial.print(cmdText + " Command Sent");
+            Serial.print(cmdText + " Command Sent\n");
         }
         delay(2000);
 
         String cmdResponse = "";
         String cmdConcat = "";
+        // cmdConcat.reserve(4096);
+//        cmdResponse.reserve(1024);
 
         bool breakOuterLoop = false;
 
         for (;;)
         {
+          uint32_t timeout = 5000;
+          uint32_t start = millis();
             if (breakOuterLoop)
             {
                 if (debugmsg)
@@ -988,15 +993,26 @@ static esp_err_t cmd_handler(httpd_req_t *req)
             {
                 while (PrintSerial.available())
                 {
+
+                    cmdResponse = PrintSerial.readStringUntil('\n');
                     if (debugmsg)
                     {
-                        Serial.println("Reading PrintSerial...");
-                    }
-                    cmdResponse = PrintSerial.readStringUntil('\n');
-                    cmdResponse = cmdResponse + "\n";
-                    cmdConcat = cmdConcat + cmdResponse;
 
-                    if (cmdResponse.indexOf("ok") > 0)
+                        Serial.println(cmdResponse + " " + PrintSerial.available());
+                        if (!PrintSerial.available())
+                        {
+                            Serial.println("Buffer Empty...");
+                        }
+                    }
+                    cmdResponse = cmdResponse + "\\n";
+                                        cmdConcat = cmdConcat + cmdResponse;
+                    if (!PrintSerial.available())
+                    {
+                        breakOuterLoop = true;
+                        break;
+                    }
+
+                    if (cmdResponse.indexOf("ok") != -1)
                     {
                         if (debugmsg)
                         {
@@ -1004,6 +1020,10 @@ static esp_err_t cmd_handler(httpd_req_t *req)
                         }
                         breakOuterLoop = true;
                         break;
+                    }
+
+                    while ((PrintSerial.available() < 20) && ((millis()-start) < timeout)) {
+                    delay(100);
                     }
                 }
             }
