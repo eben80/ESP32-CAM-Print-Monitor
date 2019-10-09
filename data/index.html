@@ -45,8 +45,6 @@ function load() {
         console.log("change executed");
     }
 
-
-
     function check() {
         $.ajax({
             url: "control?var=query&val=1",
@@ -92,7 +90,6 @@ function load() {
     });
 
     $('#refreshrate').change(function() {
-
 
         refreshrate = document.getElementById('refreshrate').value;
         document.cookie = "refreshrate=" + refreshrate + ";expires=Fri, 31 Dec 9999 23:59:59 GMT;path=/";
@@ -152,7 +149,6 @@ function abortClicked() {
     }
     return x;
 
-
 }
 
 function rebootClicked() {
@@ -163,7 +159,6 @@ function rebootClicked() {
         x = "You pressed Cancel!";
     }
     return x;
-
 
 }
 
@@ -214,7 +209,6 @@ function sendClicked() {
         alert("No command entered..");
     }
 
-
 }
 </script>
     </head>
@@ -222,7 +216,6 @@ function sendClicked() {
         <section class="main">
 
             <div id="content">
-
 
                     <figure>
                     <div id="stream-container" class="image-container" width="800" height="600">
@@ -242,15 +235,15 @@ function sendClicked() {
                                     Stream
                                     </label>
                                     </div>
-                        <div class="proglabel" id="prog-label">Progress: Reading...           
+                        <div class="proglabel" id="prog-label">Progress: Reading...
                         </div>
-                        <div class="elapsedtime" id="elapsed-time">Elapsed time: Reading...                        
+                        <div class="elapsedtime" id="elapsed-time">Elapsed time: Reading...
                         </div>
-                        <div class="exttemp" id="ext-temp">Extruder: Reading...                        
+                        <div class="exttemp" id="ext-temp">Extruder: Reading...
                         </div>
-                        <div class="bedtemp" id="bed-temp">Bed: Reading...                        
+                        <div class="bedtemp" id="bed-temp">Bed: Reading...
                         </div>
-                        <div class="cputemp" id="cpu-temp">CPU: Reading...                        
+                        <div class="cputemp" id="cpu-temp">CPU: Reading...
                         </div>
                         <img id="stream" src="https://www.mapme.ga/ESP32-CAM-PM.jpg">
                     </div>
@@ -283,4 +276,4 @@ function sendClicked() {
                     </nav>
                 </div>
     </body>
-</html>              
+</html>

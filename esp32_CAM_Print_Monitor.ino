@@ -5,10 +5,7 @@
 #include <ArduinoOTA.h>
 #include <soc/soc.h>
 #include <soc/rtc_cntl_reg.h>
-#include "SPIFFS.h"
-//#include "FS.h"
-// #include <HardwareSerial.h>
-//#include <ESP32_Servo.h>
+
 
 //
 // WARNING!!! Make sure that you have either selected ESP32 Wrover Module,
@@ -130,19 +127,6 @@ void setup()
   Serial.setTimeout(5000);
   Serial.setDebugOutput(true);
   Serial.println();
-  // PrintSerial.begin(115200, SERIAL_8N1, SERIAL1_RXPIN, SERIAL1_TXPIN);
-
-//  // Initialize SPIFFS
-//  if (!SPIFFS.begin(true)) {
-//    Serial.println("An Error has occurred while mounting SPIFFS");
-//    return;
-//  }
-//
-//  File file2 = SPIFFS.open("/index.html");
-//  if (!file2) {
-//    Serial.println("Failed to open file for reading");
-//    return;
-//  }
 
 
   camera_config_t config;

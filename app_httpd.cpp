@@ -18,8 +18,7 @@
 #include "esp_http_server.h"
 #include "esp_camera.h"
 #include "Arduino.h"
-//#include "SPIFFS.h"
-//#include "FS.h"
+
 
 #define ledPin 4     //Pin for built-in LED flash
 #define RELAY_PIN 13 //Relay Pin for Printer Mains Relay
@@ -907,23 +906,7 @@ static esp_err_t cmd_handler(httpd_req_t *req)
             {
                 Serial.println("Sending Abort Start");
             }
-            // PrintSerial.print("G91; set coordinates to relative\n");
-            // delay(2000);
-            // PrintSerial.print("G1 F1800 E-3; retract\n");
-            // delay(2000);
-            // PrintSerial.print("G1 F3000 Z10; lift nozzle off the print 10mm\n");
-            // delay(2000);
-            // PrintSerial.print("G90; change to absolute\n");
-            // delay(2000);
-            // PrintSerial.print("G1 X0 Y220 F1000 ; prepare for part removal\n");
-            // delay(2000);
-            // PrintSerial.print("M106 S0 ; turn off cooling fan\n");
-            // delay(2000);
-            // PrintSerial.print("M104 S0 ; turn off extruder\n");
-            // delay(2000);
-            // PrintSerial.print("M140 S0 ; turn off bed\n");
-            // delay(2000);
-            // PrintSerial.print("M84 ; disable motors\n");
+
             PrintSerial.print(abortString);
             PrintSerial.print("M117 Heaters off, going HOME\n");
             if (debugmsg)
@@ -971,8 +954,7 @@ static esp_err_t cmd_handler(httpd_req_t *req)
 
         String cmdResponse = "";
         String cmdConcat = "";
-        // cmdConcat.reserve(4096);
-//        cmdResponse.reserve(1024);
+
 
         bool breakOuterLoop = false;
 
@@ -1087,58 +1069,7 @@ static esp_err_t index_handler(httpd_req_t *req)
     return httpd_resp_send(req, (const char *)INDEX2_HTML, strlen(INDEX2_HTML));
 }
 
-// void parseSerial(const String &fromSerial)
-// {
-//     String a, part1, part2, exttemp, bedtemp, elapsedt, firstHalf, secondHalf;
-//     float progress, part1long, part2long;
-//     int ind1, bedindex, lastindex, extindex, lastind;
-//     a = fromSerial;
 
-//     if (a.startsWith("SD printing byte "))
-//     { //Printing progress response
-
-//         a.remove(0, 17);
-//         Serial.println("Printing progress Triggered");
-//         ind1;
-//         ind1 = a.indexOf('/');
-//         part1 = a.substring(0, ind1);
-//         part2 = a.substring(ind1 + 1);
-//         part1long = part1.toFloat();
-//         part2long = part2.toFloat();
-//         progress = (part1long / part2long) * 100;
-//     }
-//     else if (a.startsWith("ok T"))
-//     { //Temperature response
-//         Serial.println("Temperature response Triggered");
-//         a.remove(0, 5);
-//         bedindex = a.indexOf(":");
-//         secondHalf = a.substring(bedindex, a.length());
-//         // Serial.println("secondHalf" + secondHalf);
-//         secondHalf.remove(0, 1);
-//         lastindex = secondHalf.indexOf(" ");
-//         secondHalf.remove(lastindex);
-//         extindex = a.indexOf(" ");
-//         firstHalf = a;
-//         firstHalf.remove(extindex);
-//         // a.remove(tempstring);
-//         Serial.println("Ext temp:" + firstHalf);
-//         Serial.println("Bed temp:" + secondHalf);
-//         exttemp = firstHalf;
-//         bedtemp = secondHalf;
-//     }
-//     else if (a.startsWith("echo"))
-//     {
-//         Serial.println("Elapsed Time Response Triggered");
-//         lastind = a.lastIndexOf(":");
-//         a.remove(0, lastind);
-//         a.remove(0, 2);
-//         elapsedt = a;
-//     }
-//     else
-//     {
-//         Serial.println("Unknown response: " + a);
-//     }
-// }
 
 void startCameraServer()
 {
