@@ -47,14 +47,15 @@ Practical Example:
    *  ~~Ability to reboot device~~
 *  ~~Test Mains Relay code~~
 *  ~~Implement OTA updates~~
-*  GCode helper
+*  ~~GCode helper~~
+*  Load index.html from SPIFFS - WIP 
 *  Dream goal..... copy files to SD-Card over WiFi... FAST.....
 
 ```
 In the code I'm using the following:
 Serial connection to printer GPIO 14 & 15 - diodes between both these and GND to level shift to 3.3V - observe polarity
 Pay attention to set the serial connection speed to the appropriate one for your printer.
-GPIO 13 for relay that switches mains on/off  - not implemented yet.
+GPIO 13 for relay that switches mains on/off
 ```
 
 
