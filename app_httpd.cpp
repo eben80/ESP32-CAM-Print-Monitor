@@ -211,7 +211,7 @@ static esp_err_t stream_handler(httpd_req_t *req)
         }
         if (res != ESP_OK)
         {
-            Serial.println(res);
+            // Serial.println(res);
             break;
         }
     }
@@ -809,7 +809,11 @@ static esp_err_t index_handler(httpd_req_t *req)
     }
 
     httpd_resp_set_type(req, "text/html");
-    return httpd_resp_send(req, webTemplateBuffer, strlen(webTemplateBuffer));
+    esp_err_t indexstatus = httpd_resp_send(req, webTemplateBuffer, strlen(webTemplateBuffer));
+    if (debugmsg) {
+        Serial.println("Index status: " + indexstatus);
+    }
+    return indexstatus;
 }
 
 void startCameraServer()
