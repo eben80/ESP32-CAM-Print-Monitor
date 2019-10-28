@@ -1,8 +1,6 @@
 #include <esp_camera.h>
 #include <WiFi.h>
 #include <ESPmDNS.h>
-#include <DNSServer.h>
-#include "RemoteDebug.h"  
 #include <WiFiUdp.h>
 #include <ArduinoOTA.h>
 #include <soc/soc.h>
@@ -19,12 +17,6 @@
 //#define CAMERA_MODEL_WROVER_KIT
 //#define CAMERA_MODEL_M5STACK_PSRAM
 #define CAMERA_MODEL_AI_THINKER
-//RemoteDebug Config
-#define HOST_NAME "PrintCamDev1"
-#define USE_MDNS true
-#define USE_ARDUINO_OTA true
-RemoteDebug Debug;
-//RemoteDebug Config End
 
 //Config Start
 const char *KNOWN_SSID[] = {"Belkin", "Mi Phone", "AndroidAP"};
@@ -121,6 +113,36 @@ void blink() //This blinks the onboard LED flash once you are connected to the W
   digitalWrite(ledPin, LOW);  // turn off the LED
   delay(50);                  // wait for half a second or 500 milliseconds
 }
+
+// Remote debug over telnet - not recommended for production/release, only for development
+
+// Disable all debug ?
+
+// Important to compile for prodution/release
+// Disable all debug ? Good to release builds (production)
+// as nothing of RemoteDebug is compiled, zero overhead :-)
+// For it just uncomment the DEBUG_DISABLED
+// On change it, if in another IDE than Arduino IDE, like Eclipse or VSCODE,
+// please clean the project, before compile
+
+//#define DEBUG_DISABLED true
+
+// Disable the auto function feature of RemoteDebug ?
+
+//#define DEBUG_DISABLE_AUTO_FUNC true
+
+#include "RemoteDebug.h"        //https://github.com/JoaoLopesF/RemoteDebug
+
+#ifndef DEBUG_DISABLED // Only if debug is not disabled (for production/release)
+
+// Instance of RemoteDebug
+
+RemoteDebug Debug;
+
+#endif
+
+// This code was been converted by RemoteDebugConverter
+
 
 void setup()
 {
@@ -261,40 +283,12 @@ void setup()
 
   blink();
 
-
-  //RemoteDebug setup
-#ifdef USE_MDNS  // Use the MDNS ?
-
-    if (MDNS.begin(HOST_NAME)) {
-        Serial.print("* MDNS responder started. Hostname -> ");
-        Serial.println(HOST_NAME);
-    }
-
-    MDNS.addService("telnet", "tcp", 23);
-
-#endif
-
-	// Initialize RemoteDebug
-
-	Debug.begin(HOST_NAME); // Initialize the WiFi server
-
-    Debug.setResetCmdEnabled(true); // Enable the reset command
-
-	Debug.showProfiler(true); // Profiler (Good to measure times, to optimize codes)
-	Debug.showColors(true); // Colors
-
-    // End off setup
-  //RemoteDebug Setup End
-
-
-
-
   // Start OTA Config
   // Port defaults to 3232
   // ArduinoOTA.setPort(3232);
 
   // Hostname defaults to esp3232-[MAC]
-  ArduinoOTA.setHostname(HOST_NAME);
+  ArduinoOTA.setHostname("PrintCamDev1");
 
   // No authentication by default
   // ArduinoOTA.setPassword("admin");
@@ -346,22 +340,49 @@ void setup()
   Serial.print("stream Ready! Use 'http://");
   Serial.print(WiFi.localIP());
   Serial.println(":9601/stream ");
+
+#ifndef DEBUG_DISABLED // Only for development
+
+    // Initialize the WiFi server of RemoteDebug
+
+    Debug.begin("PrintCamDev1"); // Initiaze the WiFi server (please put here the hostname)
+
+    //Debug.setPassword("r3m0t0."); // Password of WiFi (as telnet) connection ?
+
+    Debug.setResetCmdEnabled(true); // Enable the reset command
+
+    Debug.showProfiler(true); // Profiler (Good to measure times, to optimize codes)
+
+    Debug.showColors(true); // Colors
+
+    //Debug.setSerialEnabled(true); // if you wants serial echo - only recommended if ESP is plugged in USB
+
+#endif
+
 }
 
 void loop()
 {
+
+#ifndef DEBUG_DISABLED
+
+    // RemoteDebug handle (for WiFi connections)
+
+    Debug.handle();
+
+
+#endif
   if (WiFi.status() != WL_CONNECTED) //Loop used to reconnect wifi after disconnection
   {
-    Serial.println(WiFi.status());
+    rprintDln(WiFi.status());
     WiFi.reconnect();
     while (WiFi.status() != WL_CONNECTED)
     {
       delay(500);
-      Serial.print(".");
+      rprintD(".");
     }
-    Serial.println("WiFi Reconnected");
+    rprintDln("WiFi Reconnected");
   }
   ArduinoOTA.handle();
-  Debug.handle();
   delay(1000);
 }
