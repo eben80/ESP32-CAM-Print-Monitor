@@ -1,6 +1,8 @@
 #include <esp_camera.h>
 #include <WiFi.h>
 #include <ESPmDNS.h>
+#include <DNSServer.h>
+#include "RemoteDebug.h"  
 #include <WiFiUdp.h>
 #include <ArduinoOTA.h>
 #include <soc/soc.h>
@@ -17,6 +19,12 @@
 //#define CAMERA_MODEL_WROVER_KIT
 //#define CAMERA_MODEL_M5STACK_PSRAM
 #define CAMERA_MODEL_AI_THINKER
+//RemoteDebug Config
+#define HOST_NAME "PrintCamDev1"
+#define USE_MDNS true
+#define USE_ARDUINO_OTA true
+RemoteDebug Debug;
+//RemoteDebug Config End
 
 //Config Start
 const char *KNOWN_SSID[] = {"Belkin", "Mi Phone", "AndroidAP"};
@@ -123,7 +131,7 @@ void setup()
   pinMode(RELAY_PIN, OUTPUT);
 
   WRITE_PERI_REG(RTC_CNTL_BROWN_OUT_REG, 0); //disable brownout detector
-  Serial.begin(115200);
+  Serial.begin(250000);
   Serial.setTimeout(5000);
   Serial.setDebugOutput(true);
   Serial.println();
@@ -253,12 +261,40 @@ void setup()
 
   blink();
 
+
+  //RemoteDebug setup
+#ifdef USE_MDNS  // Use the MDNS ?
+
+    if (MDNS.begin(HOST_NAME)) {
+        Serial.print("* MDNS responder started. Hostname -> ");
+        Serial.println(HOST_NAME);
+    }
+
+    MDNS.addService("telnet", "tcp", 23);
+
+#endif
+
+	// Initialize RemoteDebug
+
+	Debug.begin(HOST_NAME); // Initialize the WiFi server
+
+    Debug.setResetCmdEnabled(true); // Enable the reset command
+
+	Debug.showProfiler(true); // Profiler (Good to measure times, to optimize codes)
+	Debug.showColors(true); // Colors
+
+    // End off setup
+  //RemoteDebug Setup End
+
+
+
+
   // Start OTA Config
   // Port defaults to 3232
   // ArduinoOTA.setPort(3232);
 
   // Hostname defaults to esp3232-[MAC]
-  ArduinoOTA.setHostname("PrintCamDev1");
+  ArduinoOTA.setHostname(HOST_NAME);
 
   // No authentication by default
   // ArduinoOTA.setPassword("admin");
@@ -326,5 +362,6 @@ void loop()
     Serial.println("WiFi Reconnected");
   }
   ArduinoOTA.handle();
+  Debug.handle();
   delay(1000);
 }
