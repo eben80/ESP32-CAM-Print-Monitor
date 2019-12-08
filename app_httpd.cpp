@@ -18,20 +18,15 @@
 #include "esp_http_server.h"
 #include "esp_camera.h"
 #include "Arduino.h"
-#include "SPIFFS.h"
-#include "FS.h"
+#include "HardwareSerial.h"
 
 #define ledPin 4     //Pin for built-in LED flash
 #define RELAY_PIN 13 //Relay Pin for Printer Mains Relay
 
 //Start Config
 // String verNum = "V0.9";
-const uint8_t debugmsg = 1; //Debug serial messages                                                                                                                 //Debug Serial Messages
-
-const int PrintSerial_Speed = 250000;                                                                                                       //Speed for Serial connection to Printer - Ender 3 default is 115200
-#define SERIAL1_RXPIN 14                                                                                                                    //Serial Pin for PrinterSerial
-#define SERIAL1_TXPIN 15                                                                                                                    //Serial Pin for PrinterSerial
-const String abortString = "M117 Print Aborted\nM25\nM410\nG91\nG0 Z10\n\nG0 E-5\nM400\nG90\nM104 S0\nM140 S0\nM106 S0\nG0 X0 Y220\nM18\n"; //GCode for doing an aborting a print.
+uint8_t debugmsg = 1;                                                                                                                 //Debug Serial Messages
+String abortString = "M117 Print Aborted\nM25\nM410\nG91\nG0 Z10\n\nG0 E-5\nM400\nG90\nM104 S0\nM140 S0\nM106 S0\nG0 X0 Y220\nM18\n"; //GCode for doing an aborting a print.
 //End Config
 
 #ifdef __cplusplus
@@ -99,6 +94,299 @@ String urldecode(String str)
     return encodedString;
 }
 
+static const char PROGMEM INDEX2_HTML[] = R"rawliteral(
+<!doctype html>
+<html>
+    <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width,initial-scale=1">
+        <title>ESP32-CAM Print Monitor</title>
+        <style>
+body{font-family:Arial,Helvetica,sans-serif;background:#181818;color:#efefef;font-size:16px}h2{font-size:18px}#menu,section.main{flex-direction:column}section.main{display:flex}#menu{display:none;flex-wrap:nowrap;min-width:340px;background:#666;padding:8px;border-radius:4px;margin-top:-10px;margin-right:10px}#content{display:flex;flex-wrap:wrap;align-items:stretch}figure{padding:0;margin:0;-webkit-margin-before:0;margin-block-start:0;-webkit-margin-after:0;margin-block-end:0;-webkit-margin-start:0;margin-inline-start:0;-webkit-margin-end:0;margin-inline-end:0}figure img{display:block;width:100%;height:auto;border-radius:4px;margin-top:8px}@media (min-width:800px) and (orientation:landscape){#content{display:flex;flex-wrap:nowrap;align-items:stretch}figure img{display:block;max-width:100%;max-height:calc(100vh - 40px);width:auto;height:auto}figure{padding:0;margin:0;-webkit-margin-before:0;margin-block-start:0;-webkit-margin-after:0;margin-block-end:0;-webkit-margin-start:0;margin-inline-start:0;-webkit-margin-end:0;margin-inline-end:0}}section#buttons{display:flex;flex-wrap:nowrap;justify-content:space-between}#nav-toggle{cursor:pointer;display:block}#nav-toggle-cb{outline:0;opacity:0;width:0;height:0}#nav-toggle-cb:checked+#menu{display:flex;width:100%;max-width:780px}.input-group{display:flex;flex-wrap:nowrap;line-height:22px;margin:5px 0}.input-group>label{display:inline-block;padding-right:10px;min-width:47%}.input-group input,.input-group select{flex-grow:1}.range-max,.range-min{display:inline-block;padding:0 5px}button{display:block;margin:5px;padding:0 12px;border:0;line-height:28px;cursor:pointer;color:#fff;background:#ff3034;border-radius:5px;font-size:16px;outline:0}button:hover{background:#ff494d}button:active{background:#f21c21}button.disabled{cursor:default;background:#a0a0a0}input[type=range]{-webkit-appearance:none;width:100%;height:22px;background:#363636;cursor:pointer;margin:0}input[type=range]:focus{outline:0}input[type=range]::-webkit-slider-runnable-track{width:100%;height:2px;cursor:pointer;background:#efefef;border-radius:0;border:0 solid #efefef}input[type=range]::-webkit-slider-thumb{border:1px solid transparent;height:22px;width:22px;border-radius:50px;background:#ff3034;cursor:pointer;-webkit-appearance:none;margin-top:-11.5px}input[type=range]:focus::-webkit-slider-runnable-track{background:#efefef}input[type=range]::-moz-range-track{width:100%;height:2px;cursor:pointer;background:#efefef;border-radius:0;border:0 solid #efefef}input[type=range]::-moz-range-thumb{border:1px solid transparent;height:22px;width:22px;border-radius:50px;background:#ff3034;cursor:pointer}input[type=range]::-ms-track{width:100%;height:2px;cursor:pointer;background:0 0;border-color:transparent;color:transparent}input[type=range]::-ms-fill-lower{background:#efefef;border:0 solid #efefef;border-radius:0}input[type=range]::-ms-fill-upper{background:#efefef;border:0 solid #efefef;border-radius:0}input[type=range]::-ms-thumb{border:1px solid transparent;width:22px;border-radius:50px;background:#ff3034;cursor:pointer;height:2px}input[type=range]:focus::-ms-fill-lower{background:#efefef}input[type=range]:focus::-ms-fill-upper{background:#363636}.switch{line-height:22px;font-size:16px}.switch input{outline:0;opacity:0;width:0;height:0}.slider,.slider:before{width:50px;height:22px;border-radius:22px;display:inline-block}.slider:before{border-radius:50%;top:3px;position:absolute;content:"";height:15px;width:15px;left:4px;bottom:4px;background-color:#fff;-webkit-transition:.4s;transition:.4s}input:checked+.slider{background-color:#2196f3}input:checked+.slider:before{-webkit-transform:translateX(26px);-ms-transform:translateX(26px);transform:translateX(26px)}select{border:1px solid #363636;font-size:14px;height:22px;outline:0;border-radius:5px}.image-container{position:relative;min-width:160px}.abortbtn,.powerbtn{position:absolute;right:5px;top:5px;background-color:rgba(255,48,52,.5);color:#fff;text-align:center}.powerbtn{top:40px}.bedtemp,.elapsedtime,.exttemp,.proglabel,.cputemp{font-family:Arial,Helvetica,sans-serif;font-size:10px;position:absolute;left:5px;top:5px;background-color:rgba(140,114,114,.5);color:#fff;text-align:center}.bedtemp,.elapsedtime,.exttemp{top:23px}.bedtemp,.exttemp{top:40px}.bedtemp{top:60px}.cputemp{top:80px}.hidden{display:none}.lightsw{position:absolute;right:5px;top:85px;text-align:center;font-family:Arial,Helvetica,sans-serif}.streamsw{position:absolute;right:5px;top:130px;text-align:center;font-family:Arial,Helvetica,sans-serif}.switch{position:relative;display:inline-block;width:60px;height:34px}.slider{position:absolute;cursor:pointer;top:0;left:0;right:0;bottom:0;background-color:#ccc;-webkit-transition:.4s;transition:.4s}input:focus+.slider{box-shadow:0 0 1px #2196f3}.slider.round{border-radius:34px}.slider.round:before{border-radius:50%}
+        </style>
+                <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+        <script>
+function load() {
+        var refreshrate = 60000;
+    var myCookie = getCookie("refreshrate");
+
+    if (myCookie == null) {
+        document.cookie = "refreshrate=60000;expires=Fri, 31 Dec 9999 23:59:59 GMT;path=/";
+
+        // do cookie doesn't exist stuff;
+    } else {
+        refreshrate = getCookie("refreshrate");
+        $("#refreshrate").val(refreshrate);
+        // do cookie exists stuff
+    }
+    change();
+    check();
+
+    var inst = setInterval(change, refreshrate);
+    var query = setInterval(check, refreshrate);
+
+    function change() {
+        $.ajax({
+            url: "status",
+            method: "GET",
+            success: function(data) {
+                var temperature = data.temperature;
+                var elem = document.getElementById("cpu-temp");
+                elem.innerHTML = 'CPU: ' + Number.parseFloat(temperature).toFixed(2) + ' &#8451';
+            },
+            error: function(data) {
+                console.log("Data Error - status");
+                console.log(data);
+            }
+        });
+        console.log("change executed");
+    }
+
+
+
+    function check() {
+        $.ajax({
+            url: "control?var=query&val=1",
+            method: "GET",
+            success: function(data2) {
+                var progress = data2.progress;
+                var exttemp = data2.exttemp;
+                var bedtemp = data2.bedtemp;
+                var elapsedt = data2.elapsedt;
+             //   var version = data2.ver;
+                var proglabel = document.getElementById("prog-label");
+                proglabel.innerHTML = 'Progress: ' + progress + ' %';
+                var exttemplabel = document.getElementById("ext-temp");
+                exttemplabel.innerHTML = 'Extruder: ' + exttemp + ' &#8451';
+                var bedtemplabel = document.getElementById("bed-temp");
+                bedtemplabel.innerHTML = 'Bed: ' + bedtemp + ' &#8451';
+                var elapsedlabel = document.getElementById("elapsed-time");
+                elapsedlabel.innerHTML = 'Elapsed Time: ' + elapsedt;
+              //  $('#vernum').val(version);
+            },
+            error: function(data2) {
+                console.log("Data Error - query");
+                console.log (data2);
+            }
+        });
+        console.log("check executed refresh=" + refreshrate);
+    }
+
+    $('#lighttoggle').change(function() {
+        if (document.getElementById('lighttoggle').checked) {
+            $.ajax({
+                type: 'GET',
+                url: 'control?var=light&val=1',
+                success: function(data) {}
+            });
+        } else {
+            $.ajax({
+                type: 'GET',
+                url: 'control?var=light&val=0',
+                success: function(data) {}
+            });
+        }
+    });
+
+    $('#refreshrate').change(function() {
+
+
+        refreshrate = document.getElementById('refreshrate').value;
+        document.cookie = "refreshrate=" + refreshrate + ";expires=Fri, 31 Dec 9999 23:59:59 GMT;path=/";
+        clearInterval(inst);
+        inst = setInterval(change, refreshrate);
+        clearInterval(query);
+        query = setInterval(check, refreshrate);
+
+    });
+
+    $('#streamtoggle').change(function() {
+        if (document.getElementById('streamtoggle').checked) {
+            document.getElementById('stream').src = window.location.protocol + "//" + window.location.hostname + ":9601/stream";
+        } else {
+            window.stop
+            document.getElementById('stream').src = "https://www.mapme.ga/ESP32-CAM-PM.jpg";
+        }
+    });
+
+    function getCookie(name) {
+        var dc = document.cookie;
+        var prefix = name + "=";
+        var begin = dc.indexOf("; " + prefix);
+        if (begin == -1) {
+            begin = dc.indexOf(prefix);
+            if (begin != 0) return null;
+        } else {
+            begin += 2;
+            var end = document.cookie.indexOf(";", begin);
+            if (end == -1) {
+                end = dc.length;
+            }
+        }
+        // because unescape has been deprecated, replaced with decodeURI
+        //return unescape(dc.substring(begin + prefix.length, end));
+        return decodeURI(dc.substring(begin + prefix.length, end));
+    }
+
+}
+</script>
+<script>
+function abortClicked() {
+    var x;
+    if (confirm("Are you sure you want to abort the print?") == true) {
+        $.ajax({
+            url: 'control?var=abort&val=1',
+            method: "GET",
+            success: function(data) {
+
+            },
+            error: function(data) {
+                console.log("Data Error - abort");
+            }
+        });
+    } else {
+        x = "You pressed Cancel!";
+    }
+    return x;
+
+
+}
+
+function rebootClicked() {
+    var x;
+    if (confirm("Are you sure you want to reboot the ESP?") == true) {
+       
+                $.ajax({
+            url: 'control?var=reboot&val=1'
+        });
+    } else {
+        x = "You pressed Cancel!";
+    }
+    return x;
+
+
+}
+
+function powerClicked() {
+    var x;
+    if (confirm("Are you sure you want to power cycle the printer?") == true) {
+        $.ajax({
+            url: 'control?var=shutdown&val=1',
+            method: "GET",
+            success: function(data) {
+
+            },
+            error: function(data) {
+                console.log("Data Error - shutdown");
+            }
+        });
+    } else {
+        x = "You pressed Cancel!";
+    }
+    return x;
+}
+
+function sendClicked() {
+    var x;
+    if (document.getElementById('gcode').value.length > 0) {
+        x = document.getElementById('gcode').value + '\n';
+        x = encodeURI(x);
+        console.log(x);
+        document.getElementById('sendButton').disabled = true;
+
+        $.ajax({
+            url: 'control?var=command&val=' + x,
+            method: "GET",
+            success: function(data3) {
+                var cmdresponse = data3.cmdresponse;
+                console.log(cmdresponse);
+                document.getElementById('gcode').value = "";
+                document.getElementById('gcode').placeholder = cmdresponse;
+
+                document.getElementById('sendButton').disabled = false;
+            },
+            error: function(data) {
+                console.log("Data Error - gcode command");
+                document.getElementById('sendButton').disabled = false;
+            }
+        });
+    } else {
+        alert("No command entered..");
+    }
+
+
+}
+</script>
+    </head>
+    <body onload="load()">
+        <section class="main">
+
+            <div id="content">
+
+
+                    <figure>
+                    <div id="stream-container" class="image-container" width="800" height="600">
+                        <button class="abortbtn" id="abort-btn" onclick="abortClicked()">Abort</button>
+                        <button class="powerbtn" id="power-btn" onclick="powerClicked()">Power</button>
+                                    <div class="lightsw" id="light-sw">
+                                    <label class="switch">
+                                    <input type="checkbox" id ="lighttoggle">
+                                    <span class="slider round"></span><br/>
+                                    Light
+                                    </label>
+                                    </div>
+                                    <div class="streamsw" id="stream-sw">
+                                    <label class="switch">
+                                    <input type="checkbox" id ="streamtoggle">
+                                    <span class="slider round"></span><br/>
+                                    Stream
+                                    </label>
+                                    </div>
+                        <div class="proglabel" id="prog-label">Progress: Reading...           
+                        </div>
+                        <div class="elapsedtime" id="elapsed-time">Elapsed time: Reading...                        
+                        </div>
+                        <div class="exttemp" id="ext-temp">Extruder: Reading...                        
+                        </div>
+                        <div class="bedtemp" id="bed-temp">Bed: Reading...                        
+                        </div>
+                        <div class="cputemp" id="cpu-temp">CPU: Reading...                        
+                        </div>
+                        <img id="stream" src="https://www.mapme.ga/ESP32-CAM-PM.jpg">
+                    </div>
+                </figure>
+            </div>
+        </section>
+        <textarea id="gcode" rows="2" cols="40"></textarea><button id="sendButton" onclick="sendClicked()" placeholder="Enter GCode.." style="display:inline-block;">Send Code</button>
+                           <div id="logo">
+                <label for="nav-toggle-cb" id="nav-toggle">&#9776;&nbsp;&nbsp;Toggle settings</label>
+            </div>
+                                      <div id="sidebar">
+                    <input type="checkbox" id="nav-toggle-cb">
+                    <nav id="menu">
+                        <div class="input-group" id="framesize-group">
+                            <label for="refreshrate">Refresh Rate</label>
+                            <select id="refreshrate" class="default-action">
+                                <option value="120000">120 seconds</option>
+                                <option value="60000" selected="selected">60 seconds</option>
+                                <option value="30000">30 seconds</option>
+                                <option value="20000">20 seconds</option>
+                                <option value="10000">10 seconds</option>
+                                <option value="3000">3 seconds</option>
+                            </select>
+                        </div>
+
+                        <section id="buttons">
+                            <button id="rebootbtn" onclick="rebootClicked()">Reboot ESP</button>
+
+                        </section>
+                    </nav>
+                </div>
+    </body>
+</html>                     
+)rawliteral";
+///////////
+
 typedef struct
 {
     httpd_req_t *req;
@@ -109,7 +397,6 @@ typedef struct
 static const char *_STREAM_CONTENT_TYPE = "multipart/x-mixed-replace;boundary=" PART_BOUNDARY;
 static const char *_STREAM_BOUNDARY = "\r\n--" PART_BOUNDARY "\r\n";
 static const char *_STREAM_PART = "Content-Type: image/jpeg\r\nContent-Length: %u\r\n\r\n";
-bool mounted = false; //Is SPIFFS mounted
 
 httpd_handle_t stream_httpd = NULL;
 httpd_handle_t camera_httpd = NULL;
@@ -135,19 +422,17 @@ static size_t jpg_encode_stream(void *arg, size_t index, const void *data, size_
 
 static esp_err_t stream_handler(httpd_req_t *req)
 {
-    if (debugmsg)
-    {
-        Serial.println("Stream triggered...");
-    }
     camera_fb_t *fb = NULL;
     esp_err_t res = ESP_OK;
     size_t _jpg_buf_len = 0;
     uint8_t *_jpg_buf = NULL;
     char *part_buf[256]; //used to be 64
 
+    Serial.println("Stream Triggered");
     res = httpd_resp_set_type(req, _STREAM_CONTENT_TYPE);
     if (res != ESP_OK)
     {
+        Serial.println(res);
         return res;
     }
 
@@ -211,7 +496,7 @@ static esp_err_t stream_handler(httpd_req_t *req)
         }
         if (res != ESP_OK)
         {
-            // Serial.println(res);
+            Serial.println(res);
             break;
         }
     }
@@ -222,9 +507,9 @@ static esp_err_t stream_handler(httpd_req_t *req)
 static esp_err_t cmd_handler(httpd_req_t *req)
 {
 
-    HardwareSerial PrintSerial(1);
-    PrintSerial.begin(PrintSerial_Speed, SERIAL_8N1, SERIAL1_RXPIN, SERIAL1_TXPIN);
-    PrintSerial.setRxBufferSize(4096);
+    // HardwareSerial Serial1(1);
+    // Serial1.begin(Serial1_Speed, SERIAL_8N1, SERIAL1_RXPIN, SERIAL1_TXPIN);
+    // Serial1.setRxBufferSize(15000);
     char *buf;
     size_t buf_len;
     char variable[32] = {
@@ -375,19 +660,18 @@ static esp_err_t cmd_handler(httpd_req_t *req)
 
         if (debugmsg)
         {
-            Serial.println("Start query...");
+            Serial.println("Start query");
         }
-        PrintSerial.print("M27\n"); //SD printing byte XXXXXX/XXXXXXX
+        Serial1.print("M27\n"); //SD printing byte XXXXXX/XXXXXXX
         if (debugmsg)
         {
             Serial.println("M27 Sent");
         }
         delay(700);
-        while (PrintSerial.available())
+        while (Serial1.available())
         {
 
-            a = PrintSerial.readStringUntil('\n'); // read the incoming data as string
-
+            a = Serial1.readStringUntil('\n'); // read the incoming data as string
             if (a.startsWith("SD printing byte "))
             { //Printing progress response
 
@@ -431,7 +715,7 @@ static esp_err_t cmd_handler(httpd_req_t *req)
                 exttemp = firstHalf;
                 bedtemp = secondHalf;
             }
-            else if (a.startsWith("echo"))
+            else if (a.startsWith("echo:Print"))
             {
                 if (debugmsg)
                 {
@@ -451,17 +735,16 @@ static esp_err_t cmd_handler(httpd_req_t *req)
                 }
             }
         }
-        PrintSerial.print("M31\n"); //echo: Print time:  XXh XXm XXs
+        Serial1.print("M31\n"); //echo:Print time:  XXh XXm XXs
         if (debugmsg)
         {
             Serial.println("M31 Sent");
         }
         delay(700);
-        while (PrintSerial.available())
+        while (Serial1.available())
         {
 
-            a = PrintSerial.readStringUntil('\n'); // read the incoming data as string
-
+            a = Serial1.readStringUntil('\n'); // read the incoming data as string
             if (a.startsWith("SD printing byte "))
             { //Printing progress response
 
@@ -505,7 +788,7 @@ static esp_err_t cmd_handler(httpd_req_t *req)
                 exttemp = firstHalf;
                 bedtemp = secondHalf;
             }
-            else if (a.startsWith("echo"))
+            else if (a.startsWith("echo:Print"))
             {
                 if (debugmsg)
                 {
@@ -525,17 +808,16 @@ static esp_err_t cmd_handler(httpd_req_t *req)
                 }
             }
         }
-        PrintSerial.print("M105\n"); //ok T:XXX.XX /XXX.XX B:XXX.XX /XXX.XX @:XXX B@:XXX
+        Serial1.print("M105\n"); //ok T:XXX.XX /XXX.XX B:XXX.XX /XXX.XX @:XXX B@:XXX
         if (debugmsg)
         {
             Serial.println("M105 Sent");
         }
         delay(700);
-        while (PrintSerial.available())
+        while (Serial1.available())
         {
 
-            a = PrintSerial.readStringUntil('\n'); // read the incoming data as string
-
+            a = Serial1.readStringUntil('\n'); // read the incoming data as string
             if (a.startsWith("SD printing byte "))
             { //Printing progress response
 
@@ -579,7 +861,7 @@ static esp_err_t cmd_handler(httpd_req_t *req)
                 exttemp = firstHalf;
                 bedtemp = secondHalf;
             }
-            else if (a.startsWith("echo"))
+            else if (a.startsWith("echo:Print"))
             {
                 if (debugmsg)
                 {
@@ -624,8 +906,8 @@ static esp_err_t cmd_handler(httpd_req_t *req)
                 Serial.println("Sending Abort Start");
             }
 
-            PrintSerial.print(abortString);
-            PrintSerial.print("M117 Heaters off, going HOME\n");
+            Serial1.print(abortString);
+            Serial1.print("M117 Heaters off, going HOME\n");
             if (debugmsg)
             {
                 Serial.println("Sending Abort Complete");
@@ -662,7 +944,7 @@ static esp_err_t cmd_handler(httpd_req_t *req)
     {
         String cmdText = value;
         cmdText = urldecode(cmdText);
-        PrintSerial.print(cmdText);
+        Serial1.print(cmdText);
         if (debugmsg)
         {
             Serial.print(cmdText + " Command Sent\n");
@@ -687,24 +969,24 @@ static esp_err_t cmd_handler(httpd_req_t *req)
                 break;
             }
 
-            if (PrintSerial.available() >= 1)
+            if (Serial1.available() >= 1)
             {
-                while (PrintSerial.available())
+                while (Serial1.available())
                 {
 
-                    cmdResponse = PrintSerial.readStringUntil('\n');
+                    cmdResponse = Serial1.readStringUntil('\n');
                     if (debugmsg)
                     {
 
-                        Serial.println(cmdResponse + " " + PrintSerial.available());
-                        if (!PrintSerial.available())
+                        Serial.println(cmdResponse + " " + Serial1.available());
+                        if (!Serial1.available())
                         {
                             Serial.println("Buffer Empty...");
                         }
                     }
                     cmdResponse = cmdResponse + "\\n";
                     cmdConcat = cmdConcat + cmdResponse;
-                    if (!PrintSerial.available())
+                    if (!Serial1.available())
                     {
                         breakOuterLoop = true;
                         break;
@@ -720,10 +1002,10 @@ static esp_err_t cmd_handler(httpd_req_t *req)
                         break;
                     }
 
-                    // while ((PrintSerial.available() < 20) && ((millis() - start) < timeout))
-                    // {
-                    //     delay(100);
-                    // }
+                    while ((Serial1.available() < 20) && ((millis() - start) < timeout))
+                    {
+                        delay(100);
+                    }
                 }
             }
         }
@@ -777,43 +1059,13 @@ static esp_err_t status_handler(httpd_req_t *req)
 
 static esp_err_t index_handler(httpd_req_t *req)
 {
-    if (!mounted)
-    {
-        SPIFFS.begin();
-    }
-    // Update this to read the template from the SPIFFS
-    String webTemplate = "";
-    String templateFilename = "/index.html";
-    File file;
-    if (SPIFFS.exists(templateFilename))
-    {
-        mounted = true;
-        file = SPIFFS.open(templateFilename, "r");
-        while (file.available() != 0)
-        {
-            webTemplate += file.readStringUntil('\n');
-        }
-        file.close();
-        //Serial.print(webTemplate); // If loading template from SPIFFs does not work start debugging here.
-    }
-    else
-    {
-        Serial.println("Could not read " + templateFilename + " from SPIFFS. Done ? pio --target uploadfs");
-    }
-    // Convert this string to char*
-    const char *webTemplateBuffer = webTemplate.c_str();
-
+    httpd_resp_set_type(req, "text/html");
     if (debugmsg)
     {
-        Serial.printf("Index loading...\n");
+        Serial.printf("Index loading");
     }
 
-    httpd_resp_set_type(req, "text/html");
-    esp_err_t indexstatus = httpd_resp_send(req, webTemplateBuffer, strlen(webTemplateBuffer));
-    if (debugmsg) {
-        Serial.println("Index status: " + indexstatus);
-    }
-    return indexstatus;
+    return httpd_resp_send(req, (const char *)INDEX2_HTML, strlen(INDEX2_HTML));
 }
 
 void startCameraServer()
@@ -861,14 +1113,6 @@ void startCameraServer()
     Serial.printf("Starting stream server on stream port: '%d'\n", config.server_port);
     if (httpd_start(&stream_httpd, &config) == ESP_OK)
     {
-        esp_err_t status = httpd_register_uri_handler(stream_httpd, &stream_uri);
-        if (status != ESP_OK)
-        {
-            Serial.println("Someting wong: " + status);
-        }
-        else
-        {
-            Serial.println("Stream server started...");
-        }
+        httpd_register_uri_handler(stream_httpd, &stream_uri);
     }
 }

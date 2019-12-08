@@ -3,83 +3,41 @@
 #include <ESPmDNS.h>
 #include <WiFiUdp.h>
 #include <ArduinoOTA.h>
+#include "HTTPClient.h"
 #include <soc/soc.h>
 #include <soc/rtc_cntl_reg.h>
-
-
-//
-// WARNING!!! Make sure that you have either selected ESP32 Wrover Module,
-//            or another board which has PSRAM enabled
-//this edit code doesn't use a gzipped html source code
-//the html -code is open and is easy to update or modify  on the other tab page = app_httpd.cpp
-
-// Select camera model
-//#define CAMERA_MODEL_WROVER_KIT
-//#define CAMERA_MODEL_M5STACK_PSRAM
-#define CAMERA_MODEL_AI_THINKER
-
+ 
 //Config Start
 const char *KNOWN_SSID[] = {"Belkin", "Mi Phone", "AndroidAP"};
 const char *KNOWN_PASSWORD[] = {"Fixui27d69!", "12345678", "7b95ad53f0c9"};
 const int KNOWN_SSID_COUNT = sizeof(KNOWN_SSID) / sizeof(KNOWN_SSID[0]);
-
-#define RELAY_PIN 13 //Relay Pin for Printer Mains Relay
+int Serial1_Speed = 250000;  //Speed for Serial connection to Printer - Ender 3 default is 115200
+#define SERIAL1_RXPIN 14     //Serial Pin for PrinterSerial
+#define SERIAL1_TXPIN 15     //Serial Pin for PrinterSerial
+const long interval = 15000; //Pause checking interval
+#define RELAY_PIN 13         //Relay Pin for Printer Mains Relay
+boolean paused = false;
 //Config end
 
 //Flash Pin
 #define ledPin 4
 
+// Read CPU Temp
 #ifdef __cplusplus
 extern "C"
 {
 #endif
 
-uint8_t temprature_sens_read();
+  uint8_t temprature_sens_read();
 
 #ifdef __cplusplus
 }
 #endif
 
 uint8_t temprature_sens_read();
+// Read CPU Temp End
 
-#if defined(CAMERA_MODEL_WROVER_KIT)
-#define PWDN_GPIO_NUM -1
-#define RESET_GPIO_NUM -1
-#define XCLK_GPIO_NUM 21
-#define SIOD_GPIO_NUM 26
-#define SIOC_GPIO_NUM 27
-#define Y9_GPIO_NUM 35
-#define Y8_GPIO_NUM 34
-#define Y7_GPIO_NUM 39
-#define Y6_GPIO_NUM 36
-#define Y5_GPIO_NUM 19
-#define Y4_GPIO_NUM 18
-#define Y3_GPIO_NUM 5
-#define Y2_GPIO_NUM 4
-#define VSYNC_GPIO_NUM 25
-#define HREF_GPIO_NUM 23
-#define PCLK_GPIO_NUM 22
-
-#elif defined(CAMERA_MODEL_M5STACK_PSRAM)
-#define PWDN_GPIO_NUM -1
-#define RESET_GPIO_NUM 15
-#define XCLK_GPIO_NUM 27
-#define SIOD_GPIO_NUM 25
-#define SIOC_GPIO_NUM 23
-
-#define Y9_GPIO_NUM 19
-#define Y8_GPIO_NUM 36
-#define Y7_GPIO_NUM 18
-#define Y6_GPIO_NUM 39
-#define Y5_GPIO_NUM 5
-#define Y4_GPIO_NUM 34
-#define Y3_GPIO_NUM 35
-#define Y2_GPIO_NUM 32
-#define VSYNC_GPIO_NUM 22
-#define HREF_GPIO_NUM 26
-#define PCLK_GPIO_NUM 21
-
-#elif defined(CAMERA_MODEL_AI_THINKER) //zie esp32-cam schema v1.6.pdf
+// Camera Pin Definitions Start
 #define PWDN_GPIO_NUM 32
 #define RESET_GPIO_NUM -1
 #define XCLK_GPIO_NUM 0
@@ -96,9 +54,7 @@ uint8_t temprature_sens_read();
 #define VSYNC_GPIO_NUM 25
 #define HREF_GPIO_NUM 23
 #define PCLK_GPIO_NUM 22
-#else
-#error "Camera model not selected"
-#endif
+// Camera Pin Definitions End
 
 void startCameraServer();
 
@@ -123,11 +79,15 @@ void setup()
   pinMode(RELAY_PIN, OUTPUT);
 
   WRITE_PERI_REG(RTC_CNTL_BROWN_OUT_REG, 0); //disable brownout detector
-  Serial.begin(115200);
+
+  Serial.begin(115200); // Serial Connection for debugging
   Serial.setTimeout(5000);
   Serial.setDebugOutput(true);
   Serial.println();
 
+  HardwareSerial Serial1(1); // Serial Connection to Printer
+  Serial1.begin(Serial1_Speed, SERIAL_8N1, SERIAL1_RXPIN, SERIAL1_TXPIN);
+  Serial1.setRxBufferSize(15000);
 
   camera_config_t config;
   config.ledc_channel = LEDC_CHANNEL_0;
@@ -174,8 +134,7 @@ void setup()
 
   //drop down frame size for higher initial frame rate
   sensor_t *s = esp_camera_sensor_get();
-  //s->set_framesize(s, FRAMESIZE_QVGA);
-  s->set_framesize(s, FRAMESIZE_SVGA); //v12345vtm
+  s->set_framesize(s, FRAMESIZE_SVGA);
 
   // ----------------------------------------------------------------
   // WiFi.scanNetworks will return the number of networks found
@@ -270,35 +229,35 @@ void setup()
   // End OTA Config
 
   ArduinoOTA
-  .onStart([]() {
-    String type;
-    if (ArduinoOTA.getCommand() == U_FLASH)
-      type = "sketch";
-    else // U_SPIFFS
-      type = "filesystem";
+      .onStart([]() {
+        String type;
+        if (ArduinoOTA.getCommand() == U_FLASH)
+          type = "sketch";
+        else // U_SPIFFS
+          type = "filesystem";
 
-    // NOTE: if updating SPIFFS this would be the place to unmount SPIFFS using SPIFFS.end()
-    Serial.println("Start updating " + type);
-  })
-  .onEnd([]() {
-    Serial.println("\nEnd");
-  })
-  .onProgress([](unsigned int progress, unsigned int total) {
-    Serial.printf("Progress: %u%%\r", (progress / (total / 100)));
-  })
-  .onError([](ota_error_t error) {
-    Serial.printf("Error[%u]: ", error);
-    if (error == OTA_AUTH_ERROR)
-      Serial.println("Auth Failed");
-    else if (error == OTA_BEGIN_ERROR)
-      Serial.println("Begin Failed");
-    else if (error == OTA_CONNECT_ERROR)
-      Serial.println("Connect Failed");
-    else if (error == OTA_RECEIVE_ERROR)
-      Serial.println("Receive Failed");
-    else if (error == OTA_END_ERROR)
-      Serial.println("End Failed");
-  });
+        // NOTE: if updating SPIFFS this would be the place to unmount SPIFFS using SPIFFS.end()
+        Serial.println("Start updating " + type);
+      })
+      .onEnd([]() {
+        Serial.println("\nEnd");
+      })
+      .onProgress([](unsigned int progress, unsigned int total) {
+        Serial.printf("Progress: %u%%\r", (progress / (total / 100)));
+      })
+      .onError([](ota_error_t error) {
+        Serial.printf("Error[%u]: ", error);
+        if (error == OTA_AUTH_ERROR)
+          Serial.println("Auth Failed");
+        else if (error == OTA_BEGIN_ERROR)
+          Serial.println("Begin Failed");
+        else if (error == OTA_CONNECT_ERROR)
+          Serial.println("Connect Failed");
+        else if (error == OTA_RECEIVE_ERROR)
+          Serial.println("Receive Failed");
+        else if (error == OTA_END_ERROR)
+          Serial.println("End Failed");
+      });
 
   ArduinoOTA.begin();
 
@@ -324,7 +283,37 @@ void loop()
       Serial.print(".");
     }
     Serial.println("WiFi Reconnected");
+  } else {
+  // ArduinoOTA.handle();
   }
-  ArduinoOTA.handle();
-  delay(1000);
+  // Non-blocking delay start
+  static long currentMillis;
+
+  if (millis() - currentMillis >= interval)
+  {
+    Serial.println("Pause Checking");
+    Serial1.print("M27\n"); 
+    delay(1000);
+    String a;
+    while (Serial1.available())
+    {
+      a = Serial1.readStringUntil('\n'); // read the incoming data as string
+      if (a.startsWith("echo:busy: paused"))
+      {
+        if (!paused)
+        {
+          HTTPClient http;
+          http.begin("http://mapme.ga/notifemail.php"); //Specify the URL
+          int httpCode = http.GET();
+          http.end();
+          paused = true;
+        }
+      }
+      else
+      {
+        paused = false;
+      }
+    }
+    currentMillis = millis();
+  } // Non-blocking delay end
 }
