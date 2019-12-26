@@ -18,7 +18,7 @@
 #include "esp_http_server.h"
 #include "esp_camera.h"
 #include "Arduino.h"
-#include "HardwareSerial.h"
+#include <ArduinoJson.h>
 
 #define ledPin 4     //Pin for built-in LED flash
 #define RELAY_PIN 13 //Relay Pin for Printer Mains Relay
@@ -26,6 +26,9 @@
 //Start Config
 // String verNum = "V0.9";
 uint8_t debugmsg = 1;                                                                                                                 //Debug Serial Messages
+int PrintSerial_Speed = 250000;                                                                                                       //Speed for Serial connection to Printer - Ender 3 default is 115200
+#define SERIAL1_RXPIN 14                                                                                                              //Serial Pin for PrinterSerial
+#define SERIAL1_TXPIN 15                                                                                                              //Serial Pin for PrinterSerial
 String abortString = "M117 Print Aborted\nM25\nM410\nG91\nG0 Z10\n\nG0 E-5\nM400\nG90\nM104 S0\nM140 S0\nM106 S0\nG0 X0 Y220\nM18\n"; //GCode for doing an aborting a print.
 //End Config
 
@@ -255,10 +258,7 @@ function abortClicked() {
 function rebootClicked() {
     var x;
     if (confirm("Are you sure you want to reboot the ESP?") == true) {
-       
-                $.ajax({
-            url: 'control?var=reboot&val=1'
-        });
+        $.get('control?var=reboot&val=1');
     } else {
         x = "You pressed Cancel!";
     }
@@ -428,11 +428,9 @@ static esp_err_t stream_handler(httpd_req_t *req)
     uint8_t *_jpg_buf = NULL;
     char *part_buf[256]; //used to be 64
 
-    Serial.println("Stream Triggered");
     res = httpd_resp_set_type(req, _STREAM_CONTENT_TYPE);
     if (res != ESP_OK)
     {
-        Serial.println(res);
         return res;
     }
 
@@ -507,9 +505,9 @@ static esp_err_t stream_handler(httpd_req_t *req)
 static esp_err_t cmd_handler(httpd_req_t *req)
 {
 
-    // HardwareSerial Serial1(1);
-    // Serial1.begin(Serial1_Speed, SERIAL_8N1, SERIAL1_RXPIN, SERIAL1_TXPIN);
-    // Serial1.setRxBufferSize(15000);
+    HardwareSerial PrintSerial(1);
+    PrintSerial.begin(PrintSerial_Speed, SERIAL_8N1, SERIAL1_RXPIN, SERIAL1_TXPIN);
+    PrintSerial.setRxBufferSize(15000);
     char *buf;
     size_t buf_len;
     char variable[32] = {
@@ -662,16 +660,17 @@ static esp_err_t cmd_handler(httpd_req_t *req)
         {
             Serial.println("Start query");
         }
-        Serial1.print("M27\n"); //SD printing byte XXXXXX/XXXXXXX
+        PrintSerial.print("M27\n"); //SD printing byte XXXXXX/XXXXXXX
         if (debugmsg)
         {
             Serial.println("M27 Sent");
         }
         delay(700);
-        while (Serial1.available())
+        while (PrintSerial.available())
         {
 
-            a = Serial1.readStringUntil('\n'); // read the incoming data as string
+            a = PrintSerial.readStringUntil('\n'); // read the incoming data as string
+
             if (a.startsWith("SD printing byte "))
             { //Printing progress response
 
@@ -715,7 +714,7 @@ static esp_err_t cmd_handler(httpd_req_t *req)
                 exttemp = firstHalf;
                 bedtemp = secondHalf;
             }
-            else if (a.startsWith("echo:Print"))
+            else if (a.startsWith("echo"))
             {
                 if (debugmsg)
                 {
@@ -735,16 +734,17 @@ static esp_err_t cmd_handler(httpd_req_t *req)
                 }
             }
         }
-        Serial1.print("M31\n"); //echo:Print time:  XXh XXm XXs
+        PrintSerial.print("M31\n"); //echo: Print time:  XXh XXm XXs
         if (debugmsg)
         {
             Serial.println("M31 Sent");
         }
         delay(700);
-        while (Serial1.available())
+        while (PrintSerial.available())
         {
 
-            a = Serial1.readStringUntil('\n'); // read the incoming data as string
+            a = PrintSerial.readStringUntil('\n'); // read the incoming data as string
+
             if (a.startsWith("SD printing byte "))
             { //Printing progress response
 
@@ -788,7 +788,7 @@ static esp_err_t cmd_handler(httpd_req_t *req)
                 exttemp = firstHalf;
                 bedtemp = secondHalf;
             }
-            else if (a.startsWith("echo:Print"))
+            else if (a.startsWith("echo"))
             {
                 if (debugmsg)
                 {
@@ -808,16 +808,17 @@ static esp_err_t cmd_handler(httpd_req_t *req)
                 }
             }
         }
-        Serial1.print("M105\n"); //ok T:XXX.XX /XXX.XX B:XXX.XX /XXX.XX @:XXX B@:XXX
+        PrintSerial.print("M105\n"); //ok T:XXX.XX /XXX.XX B:XXX.XX /XXX.XX @:XXX B@:XXX
         if (debugmsg)
         {
             Serial.println("M105 Sent");
         }
         delay(700);
-        while (Serial1.available())
+        while (PrintSerial.available())
         {
 
-            a = Serial1.readStringUntil('\n'); // read the incoming data as string
+            a = PrintSerial.readStringUntil('\n'); // read the incoming data as string
+
             if (a.startsWith("SD printing byte "))
             { //Printing progress response
 
@@ -861,7 +862,7 @@ static esp_err_t cmd_handler(httpd_req_t *req)
                 exttemp = firstHalf;
                 bedtemp = secondHalf;
             }
-            else if (a.startsWith("echo:Print"))
+            else if (a.startsWith("echo"))
             {
                 if (debugmsg)
                 {
@@ -906,8 +907,8 @@ static esp_err_t cmd_handler(httpd_req_t *req)
                 Serial.println("Sending Abort Start");
             }
 
-            Serial1.print(abortString);
-            Serial1.print("M117 Heaters off, going HOME\n");
+            PrintSerial.print(abortString);
+            PrintSerial.print("M117 Heaters off, going HOME\n");
             if (debugmsg)
             {
                 Serial.println("Sending Abort Complete");
@@ -944,7 +945,8 @@ static esp_err_t cmd_handler(httpd_req_t *req)
     {
         String cmdText = value;
         cmdText = urldecode(cmdText);
-        Serial1.print(cmdText);
+        PrintSerial.print(cmdText);
+        StaticJsonDocument<500> doc;
         if (debugmsg)
         {
             Serial.print(cmdText + " Command Sent\n");
@@ -969,24 +971,24 @@ static esp_err_t cmd_handler(httpd_req_t *req)
                 break;
             }
 
-            if (Serial1.available() >= 1)
+            if (PrintSerial.available() >= 1)
             {
-                while (Serial1.available())
+                while (PrintSerial.available())
                 {
 
-                    cmdResponse = Serial1.readStringUntil('\n');
+                    cmdResponse = PrintSerial.readStringUntil('\n');
                     if (debugmsg)
                     {
 
-                        Serial.println(cmdResponse + " " + Serial1.available());
-                        if (!Serial1.available())
+                        Serial.println(cmdResponse + " " + PrintSerial.available());
+                        if (!PrintSerial.available())
                         {
                             Serial.println("Buffer Empty...");
                         }
                     }
                     cmdResponse = cmdResponse + "\\n";
                     cmdConcat = cmdConcat + cmdResponse;
-                    if (!Serial1.available())
+                    if (!PrintSerial.available())
                     {
                         breakOuterLoop = true;
                         break;
@@ -1002,22 +1004,42 @@ static esp_err_t cmd_handler(httpd_req_t *req)
                         break;
                     }
 
-                    while ((Serial1.available() < 20) && ((millis() - start) < timeout))
+                    while ((PrintSerial.available() < 20) && ((millis() - start) < timeout))
                     {
                         delay(100);
                     }
                 }
             }
         }
-        static char json_response2[4096];
-        char *p = json_response2;
-        *p++ = '{';
-        p += sprintf(p, "\"cmdresponse\":\"%s\"", cmdConcat.c_str());
-        *p++ = '}';
-        *p++ = 0;
-        httpd_resp_set_type(req, "application/json");
-        httpd_resp_set_hdr(req, "Access-Control-Allow-Origin", "*");
-        return httpd_resp_send(req, json_response2, strlen(json_response2));
+
+        // cmdConcat.replace("\nok\n", "");
+        DeserializationError error = deserializeJson(doc, cmdConcat);
+        if (error)
+        {
+            static char json_response2[4096];
+            char *p = json_response2;
+            *p++ = '{';
+            p += sprintf(p, "\"cmdresponse\":\"%s\"", cmdConcat.c_str());
+            *p++ = '}';
+            *p++ = 0;
+            httpd_resp_set_type(req, "application/json");
+            httpd_resp_set_hdr(req, "Access-Control-Allow-Origin", "*");
+            return httpd_resp_send(req, json_response2, strlen(json_response2));
+        }
+        else
+        {
+            int length = cmdConcat.length();
+            cmdConcat.remove(length - 6);
+            static char json_response2[4096];
+            char *p = json_response2;
+            // *p++ = '';
+            p += sprintf(p, "%s", cmdConcat.c_str());
+            // *p++ = '';
+            *p++ = 0;
+            httpd_resp_set_type(req, "application/json");
+            httpd_resp_set_hdr(req, "Access-Control-Allow-Origin", "*");
+            return httpd_resp_send(req, json_response2, strlen(json_response2));
+        }
     }
 
     else
