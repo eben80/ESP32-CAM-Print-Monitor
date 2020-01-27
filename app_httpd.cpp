@@ -203,6 +203,14 @@ function load() {
 
     });
 
+        $('#macros').change(function() {
+
+
+        macroText = document.getElementById('macros').value;
+        document.getElementById('gcode').value = macroText;
+
+    });
+
     $('#streamtoggle').change(function() {
         if (document.getElementById('streamtoggle').checked) {
             document.getElementById('stream').src = window.location.protocol + "//" + window.location.hostname + ":9601/stream";
@@ -373,6 +381,16 @@ function sendClicked() {
                                 <option value="20000">20 seconds</option>
                                 <option value="10000">10 seconds</option>
                                 <option value="3000">3 seconds</option>
+                            </select>
+                        </div>
+                            <div class="input-group" id="special_effect-group">
+                            <label for="macros">Macros</label>
+                            <select id="macros" class="default-action">
+                                <option value="M140 S">Bed Temperature</option>
+                                <option value="M104 S" selected="selected">Extruder Temperature</option>
+                                <option value="M221 S">Flow Rate</option>
+                                <option value="M106 S">Fan Speed</option>
+                                <option value="M408">JSON Report</option>
                             </select>
                         </div>
 
@@ -680,7 +698,6 @@ static esp_err_t cmd_handler(httpd_req_t *req)
                     Serial.println(a);
                 }
                 a.remove(0, 17);
-                ind1;
                 ind1 = a.indexOf('/');
                 part1 = a.substring(0, ind1);
                 part2 = a.substring(ind1 + 1);
@@ -754,7 +771,6 @@ static esp_err_t cmd_handler(httpd_req_t *req)
                     Serial.println(a);
                 }
                 a.remove(0, 17);
-                ind1;
                 ind1 = a.indexOf('/');
                 part1 = a.substring(0, ind1);
                 part2 = a.substring(ind1 + 1);
@@ -828,7 +844,6 @@ static esp_err_t cmd_handler(httpd_req_t *req)
                     Serial.println(a);
                 }
                 a.remove(0, 17);
-                ind1;
                 ind1 = a.indexOf('/');
                 part1 = a.substring(0, ind1);
                 part2 = a.substring(ind1 + 1);
@@ -1010,6 +1025,11 @@ static esp_err_t cmd_handler(httpd_req_t *req)
                     }
                 }
             }
+            else
+            {
+                breakOuterLoop = true;
+                break;
+            }
         }
 
         // cmdConcat.replace("\nok\n", "");
@@ -1064,7 +1084,7 @@ static esp_err_t status_handler(httpd_req_t *req)
 {
     static char json_response[1024];
 
-    sensor_t *s = esp_camera_sensor_get();
+    // sensor_t *s = esp_camera_sensor_get();
     char *p = json_response;
     *p++ = '{';
     p += sprintf(p, "\"temperature\":%f", (temprature_sens_read() - 32) / 1.8);
