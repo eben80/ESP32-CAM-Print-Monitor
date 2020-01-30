@@ -675,9 +675,34 @@ static const char PROGMEM INDEX2_HTML[] = R"rawliteral(
 
         }
 
+        function sleep(ms) {
+            return new Promise(
+                resolve => setTimeout(resolve, ms)
+            );
+        }
+
+        async function waiting() {
+            $('#stream').css({ 'display': 'none' });
+            $('#prog-label').css({ 'display': 'none' });
+            $('#elapsed-time').css({ 'display': 'none' });
+            $('#ext-temp').css({ 'display': 'none' });
+            $('#bed-temp').css({ 'display': 'none' });
+            $('#cpu-temp').css({ 'display': 'none' });
+            $('#abort-btn').css({ 'display': 'none' });
+            $('#power-btn').css({ 'display': 'none' });
+            $('#light-sw').css({ 'display': 'none' });
+            $('#stream-sw').css({ 'display': 'none' });
+            $('#waiting').css({ 'display': 'block' });
+            await sleep(10000);
+            $('#waiting').css({ 'display': 'none' });
+            location.reload();
+
+        }
+
         function rebootClicked() {
             var x;
             if (confirm("Are you sure you want to reboot the ESP?") == true) {
+                waiting();
                 $.get('control?var=reboot&val=1');
             } else {
                 x = "You pressed Cancel!";
@@ -774,6 +799,7 @@ static const char PROGMEM INDEX2_HTML[] = R"rawliteral(
                     <div class="cputemp" id="cpu-temp">CPU: Reading...
                     </div>
                     <img id="stream" src="https://www.mapme.ga/ESP32-CAM-PM.jpg">
+                    <img id="waiting" src="https://www.mapme.ga/waiting.gif" style="display:none">
                 </div>
             </figure>
         </div>
@@ -817,7 +843,7 @@ static const char PROGMEM INDEX2_HTML[] = R"rawliteral(
     </div>
 </body>
 
-</html>        
+</html>      
 )rawliteral";
 ///////////
 
