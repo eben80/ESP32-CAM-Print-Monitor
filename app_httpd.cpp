@@ -533,8 +533,9 @@ static const char PROGMEM INDEX2_HTML[] = R"rawliteral(
                 // do cookie exists stuff
             }
 
+            // change();
             check();
-
+            // var inst = setInterval(change, refreshrate);
             var query = setInterval(check, refreshrate);
 
             function check() {
@@ -608,8 +609,8 @@ static const char PROGMEM INDEX2_HTML[] = R"rawliteral(
 
                 refreshrate = document.getElementById('refreshrate').value;
                 document.cookie = "refreshrate=" + refreshrate + ";expires=Fri, 31 Dec 9999 23:59:59 GMT;path=/";
-                clearInterval(inst);
-                inst = setInterval(change, refreshrate);
+                // clearInterval(inst);
+                // inst = setInterval(change, refreshrate);
                 clearInterval(query);
                 query = setInterval(check, refreshrate);
 
@@ -692,6 +693,10 @@ static const char PROGMEM INDEX2_HTML[] = R"rawliteral(
             $('#power-btn').css({ 'display': 'none' });
             $('#light-sw').css({ 'display': 'none' });
             $('#stream-sw').css({ 'display': 'none' });
+            $('#gcode').css({ 'display': 'none' });
+            $('#logo').css({ 'display': 'none' });
+            $('#sendButton').css({ 'display': 'none' });
+            $('#sidebar').css({ 'display': 'none' });
             $('#waiting').css({ 'display': 'block' });
             await sleep(10000);
             $('#waiting').css({ 'display': 'none' });
@@ -843,7 +848,7 @@ static const char PROGMEM INDEX2_HTML[] = R"rawliteral(
     </div>
 </body>
 
-</html>      
+</html>
 )rawliteral";
 ///////////
 
