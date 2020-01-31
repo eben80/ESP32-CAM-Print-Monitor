@@ -433,9 +433,9 @@
                 // do cookie exists stuff
             }
 
-            // change();
+
             check();
-            // var inst = setInterval(change, refreshrate);
+
             var query = setInterval(check, refreshrate);
 
             function check() {
@@ -509,8 +509,6 @@
 
                 refreshrate = document.getElementById('refreshrate').value;
                 document.cookie = "refreshrate=" + refreshrate + ";expires=Fri, 31 Dec 9999 23:59:59 GMT;path=/";
-                // clearInterval(inst);
-                // inst = setInterval(change, refreshrate);
                 clearInterval(query);
                 query = setInterval(check, refreshrate);
 
@@ -521,6 +519,7 @@
 
                 macroText = document.getElementById('macros').value;
                 document.getElementById('gcode').value = macroText;
+                $('#macros').prop('selectedIndex',0);
 
             });
 
